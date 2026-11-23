@@ -1,0 +1,82 @@
+import unittest
+
+from avaliar import avaliar, sentido_da_frase, valores_da_frase
+from tests.comum import corpus, gabarito
+
+
+class TestValoresDaFrase(unittest.TestCase):
+    def test_mil(self):
+        self.assertEqual(
+            valores_da_frase("reservou mais R$ 405 mil e pagou cerca de R$ 39 mil"), [405000, 39000]
+        )
+
+    def test_milhao_com_decimal(self):
+        self.assertEqual(valores_da_frase("mais R$ 1,2 milhão foi garantido"), [1200000])
+
+    def test_meio_milhao(self):
+        self.assertEqual(valores_da_frase("quase meio milhão de reais a mais"), [500000])
+
+    def test_valor_exato(self):
+        self.assertEqual(valores_da_frase("pagou R$ 39.247,58 agora"), [39247.58])
+
+    def test_mil_com_decimal(self):
+        self.assertEqual(valores_da_frase("R$ 14,5 mil pingaram na conta"), [14500])
+
+    def test_sem_valor(self):
+        self.assertEqual(valores_da_frase("a emenda andou"), [])
+
+
+class TestSentidoDaFrase(unittest.TestCase):
+    def test_recuo(self):
+        self.assertEqual(sentido_da_frase("o governo cancelou quase R$ 9 mil"), "recuo")
+
+    def test_nova(self):
+        self.assertEqual(sentido_da_frase("É uma emenda nova que acaba de entrar"), "nova")
+
+    def test_removida(self):
+        self.assertEqual(sentido_da_frase("A emenda sumiu da lista da CGU"), "removida")
+
+    def test_avanco(self):
+        self.assertEqual(sentido_da_frase("Mais R$ 9,8 mil caíram na conta"), "avanco")
+
+
+class TestAvaliar(unittest.TestCase):
+    def test_as_40_frases_humanas_passam(self):
+        c = corpus()
+        falhas = []
+        for g in gabarito():
+            r = avaliar(g["rotulo"]["frase"], "alta", c[g["id"]]["campos"], g["rotulo"]["tipo"])
+            if not r["correta"]:
+                falhas.append((g["id"], r))
+        self.assertEqual(falhas, [])
+
+    def test_valor_inventado_falha(self):
+        campos = corpus()[gabarito()[0]["id"]]["campos"]  # +405.881,85 empenhado; +39.247,58 pago
+        r = avaliar("O governo pagou R$ 2 milhões.", "alta", campos, "avanco")
+        self.assertFalse(r["valor"])
+        self.assertFalse(r["correta"])
+
+    def test_valor_de_antes_e_depois_vale(self):
+        campos = corpus()[gabarito()[0]["id"]]["campos"]  # empenhado 12.678.442,00 -> 13.084.323,85
+        r = avaliar("A reserva passou de R$ 12,7 milhões para R$ 13,1 milhões.", "alta", campos, "avanco")
+        self.assertTrue(r["valor"])
+
+    def test_sentido_trocado_falha(self):
+        campos = corpus()[gabarito()[0]["id"]]["campos"]
+        r = avaliar("O governo cancelou R$ 405 mil.", "alta", campos, "avanco")
+        self.assertFalse(r["sentido"])
+
+    def test_jargao_falha(self):
+        campos = corpus()[gabarito()[0]["id"]]["campos"]
+        r = avaliar("Foram empenhados mais R$ 405 mil.", "alta", campos, "avanco")
+        self.assertFalse(r["sem_jargao"])
+
+    def test_formato(self):
+        campos = corpus()[gabarito()[0]["id"]]["campos"]
+        self.assertFalse(avaliar("", "alta", campos, "avanco")["formato"])
+        self.assertFalse(avaliar("x" * 281, "alta", campos, "avanco")["formato"])
+        self.assertFalse(avaliar("Mais R$ 405 mil.", "talvez", campos, "avanco")["formato"])
+
+
+if __name__ == "__main__":
+    unittest.main()

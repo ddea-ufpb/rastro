@@ -1,0 +1,23 @@
+{
+  "_nota": "Especificação boa (Execução 2): a mesma referência com o jeito de dizer ao morador e regras de desempate, e descrições dizendo QUANDO usar cada ferramenta.",
+  "descricoes": {
+    "consultar_glossario": "Explica um termo de orçamento e como dizê-lo ao morador. Consulte ANTES de escrever: primeiro com termo='regras' (regras de redação e de desempate) e depois uma vez para cada termo técnico que aparece no item (empenhado, liquidado, pago, restos a pagar...).",
+    "buscar_semelhante": "Devolve até duas frases já registradas para itens com o mesmo sentido e a mesma área. Use DEPOIS do glossário e ANTES de registrar, para manter o mesmo tom das frases anteriores. Se não houver nenhuma, siga só as regras.",
+    "registrar": "Entrega a frase final do item e encerra. Chame UMA vez, por último, quando a frase seguir as regras. A frase tem até 280 caracteres e é uma frase só."
+  },
+  "glossario": {
+    "regras": "1) A frase comunica o sentido dado no item: avanco = o dinheiro andou rumo ao pagamento; recuo = dinheiro cancelado ou reduzido, que não vai mais ser pago; nova = emenda nova, que aparece pela primeira vez; removida = a emenda sumiu da lista. 2) Desempate entre etapas: se o pago (ou o pago de anos anteriores) subiu, fale primeiro do pagamento, que é o dinheiro que chegou; se só o reservado subiu, diga que foi reservado, nunca que foi pago. 3) Restos a pagar inscritos caindo e restos a pagar pagos subindo no mesmo valor é UM dinheiro só, de anos anteriores, sendo pago agora: cite o valor uma vez. 4) Cite só valores que estão no item, arredondados: até R$ 999 o valor inteiro; de mil a um milhão em mil (R$ 405 mil); acima, em milhão com uma casa (R$ 1,2 milhão). Nunca some nem invente valor. 5) Não escreva empenho, empenhado, liquidação, liquidado nem restos a pagar: diga reservado, aprovado para pagamento, pago, dinheiro de anos anteriores. 6) Local MÚLTIPLO = vários municípios; Nacional = no país; não invente cidade. 7) Uma frase só, até 280 caracteres. 8) Confiança: alta quando há uma mudança clara; media quando mistura etapas; baixa quando há troca de local junto com valor ou algo que você não entendeu.",
+    "empenhado": "Empenhado: o governo reservou o dinheiro para a emenda. Ao morador: 'reservou' ou 'garantiu a reserva'. Não diga que foi pago.",
+    "liquidado": "Liquidado: o governo conferiu a entrega ou o serviço e aprovou o pagamento. Ao morador: 'aprovou para pagamento' ou 'liberou no sistema'. Ainda não é dinheiro na conta.",
+    "pago": "Pago: o dinheiro saiu do governo para o destino. Ao morador: 'pagou' ou 'caiu na conta'. É a notícia mais importante quando aparece.",
+    "restos a pagar inscritos": "Restos a pagar inscritos: dinheiro de anos anteriores que ficou para pagar depois. Se cai junto com os pagos subindo, é o mesmo dinheiro sendo pago (regra 3).",
+    "restos a pagar pagos": "Restos a pagar pagos: dinheiro de anos anteriores pago agora. Ao morador: 'pagou dinheiro atrasado de anos anteriores'.",
+    "restos a pagar cancelados": "Restos a pagar cancelados: dinheiro de anos anteriores que foi cancelado e não vai mais ser pago. É recuo. Ao morador: 'cancelou', 'não vai mais ser pago'.",
+    "emenda individual": "Emenda individual: indicada por um deputado ou senador. Não precisa entrar na frase.",
+    "emenda de bancada": "Emenda de bancada: indicada pelo conjunto de parlamentares de um estado. Pode citar 'a bancada do estado'.",
+    "transferencias especiais": "Transferências especiais: dinheiro mandado direto para a prefeitura ou o estado, sem obra definida. Ao morador: 'repasse direto para as prefeituras'.",
+    "transferencias com finalidade definida": "Transferências com finalidade definida: dinheiro com destino definido no orçamento. Não precisa entrar na frase.",
+    "multiplo": "Múltiplo: vários municípios. Ao morador: 'para vários municípios'.",
+    "nacional": "Nacional: sem cidade definida. Ao morador: 'no país'."
+  }
+}
