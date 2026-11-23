@@ -1,6 +1,8 @@
 """Gabarito da Etapa 2: sorteia 40 itens do corpus e confere a rotulagem.
 
     python3 gabarito.py sortear    # grava gabarito.jsonl com os rótulos vazios
+    python3 gabarito.py folha      # gera rotular.md para rotular à mão
+    python3 gabarito.py importar   # lê rotular.md, grava os rótulos e confere
     python3 gabarito.py conferir   # diz o que falta antes do commit
 
 O sorteio é reproduzível: semente fixa e SHA-256 do corpus gravados em
@@ -136,8 +138,83 @@ def conferir() -> int:
     return 0
 
 
+DEFINICOES = {
+    "avanco": "o dinheiro andou rumo ao pagamento: mais empenhado, liquidado ou pago",
+    "recuo": "valor reduzido ou cancelado, sem pagamento correspondente",
+    "ajuste_contabil": "valor trocou de rubrica sem dinheiro novo entrando nem saindo",
+    "correcao_cadastral": "mudou só local, texto ou classificação; os valores não mudaram",
+    "nova": "emenda que só aparece no lote novo",
+    "removida": "emenda que só aparece no lote anterior",
+}
+FOLHA = AQUI / "rotular.md"
+_OPCOES_ALTERADA = ["avanco", "recuo", "ajuste_contabil", "correcao_cadastral"]
+
+
+def folha() -> int:
+    """Gera rotular.md: os 40 itens com caixas de tipo e uma linha de frase."""
+    linhas = _ler_jsonl(GABARITO)
+    out = [
+        "# Gabarito: rotulagem à mão",
+        "",
+        "Para cada item: marque UM tipo trocando `[ ]` por `[x]` e escreva, depois de",
+        "`Frase:`, uma frase sua dizendo o que mudou entre os lotes, em linguagem de morador.",
+        "Não mude as linhas que começam com `## `. Depois: `python3 gabarito.py importar`.",
+        "",
+        "Tipos:",
+        "",
+    ]
+    out += [f"- **{t}**: {DEFINICOES.get(t, '')}" for t in json.loads(TIPOS.read_text(encoding="utf-8"))]
+    for n, l in enumerate(linhas, 1):
+        r = l.get("rotulo") or {}
+        opcoes = _OPCOES_ALTERADA if l["presenca"] == "alterada" else [l["presenca"]] + _OPCOES_ALTERADA
+        out += ["", "---", "", f"## {n} · {l['id']}", "", f"> {l['texto']}", "", "Tipo:", ""]
+        out += [f"- [{'x' if r.get('tipo') == o else ' '}] {o}" for o in opcoes]
+        out += ["", f"Frase: {r.get('frase') or ''}".rstrip() + " "]
+    FOLHA.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
+    print(f"OK: {len(linhas)} itens em {FOLHA.name}")
+    return 0
+
+
+def importar() -> int:
+    """Lê rotular.md e grava tipo e frase em gabarito.jsonl. Não grava nada se houver erro."""
+    linhas = _ler_jsonl(GABARITO)
+    por_id = {l["id"]: l for l in linhas}
+    blocos: dict[str, list[str]] = {}
+    atual = None
+    for linha in FOLHA.read_text(encoding="utf-8").splitlines():
+        if linha.startswith("## "):
+            atual = linha.split("·", 1)[-1].strip()
+            blocos[atual] = []
+        elif atual:
+            blocos[atual].append(linha)
+
+    erros, rotulos = [], {}
+    if set(blocos) != set(por_id):
+        erros.append("os ids da folha não são os do gabarito (alguma linha `## ` foi mudada?)")
+    for n, (id_, corpo) in enumerate(blocos.items(), 1):
+        marcados = [c.split("]", 1)[1].strip() for c in corpo if c.lower().startswith("- [x]")]
+        frases = [c.split(":", 1)[1].strip() for c in corpo if c.startswith("Frase:")]
+        frase = frases[0] if frases else ""
+        if len(marcados) != 1:
+            erros.append(f"item {n}: {len(marcados)} tipos marcados, precisa de 1")
+        if not frase:
+            erros.append(f"item {n}: sem frase")
+        rotulos[id_] = {"frase": frase, "tipo": marcados[0] if len(marcados) == 1 else ""}
+    if erros:
+        print("\n".join(f"- {e}" for e in erros), file=sys.stderr)
+        print("Nada foi gravado.", file=sys.stderr)
+        return 1
+    for l in linhas:
+        l["rotulo"] = rotulos[l["id"]]
+    GABARITO.write_text(
+        "".join(json.dumps(l, ensure_ascii=False) + "\n" for l in linhas), encoding="utf-8"
+    )
+    print(f"OK: {len(linhas)} rótulos gravados em {GABARITO.name}")
+    return conferir()
+
+
 if __name__ == "__main__":
-    comandos = {"sortear": sortear, "conferir": conferir}
+    comandos = {"sortear": sortear, "conferir": conferir, "folha": folha, "importar": importar}
     if len(sys.argv) != 2 or sys.argv[1] not in comandos:
         print(__doc__, file=sys.stderr)
         sys.exit(2)
