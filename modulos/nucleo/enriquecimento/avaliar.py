@@ -87,6 +87,22 @@ def _uma_frase(frase: str) -> bool:
     return not re.search(r"[.!?]\s+[A-ZÁÉÍÓÚÂÊÔÃÕÇ]", frase.strip())
 
 
+# Auditoria pós-hoc (depois da rodada 2): a frase não pode atribuir mudança a uma
+# etapa que não mudou. Só reservado e aprovado/liberado: "pagamento" aparece em
+# frases humanas certas ("pronto para pagamento"), então o pago fica de fora.
+_ETAPAS = {
+    "empenhado_centavos": re.compile(r"empreg|empenh|reserv", re.IGNORECASE),
+    "liquidado_centavos": re.compile(r"liquid|aprov|liber|atest", re.IGNORECASE),
+}
+
+
+def etapa_coerente(frase: str, campos: dict) -> bool:
+    if campos["presenca"] != "alterada":
+        return True
+    mudaram = {a["campo"] for a in campos["alteracoes"] if a.get("diferenca_centavos")}
+    return not any(p.search(frase or "") and campo not in mudaram for campo, p in _ETAPAS.items())
+
+
 def avaliar(frase: str, confianca: str | None, campos: dict, sentido: str) -> dict[str, bool]:
     frase = (frase or "").strip()
     valores = valores_da_frase(frase)

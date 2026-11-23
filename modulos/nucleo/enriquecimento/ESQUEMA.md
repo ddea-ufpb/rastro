@@ -45,8 +45,9 @@ Para usar sem ler o JSON: `python3 carregar.py dados.jsonl --banco rastro.db`
 
 ## Regra de uso
 
-- **Não mostre** ao morador o `resumo` com `confianca = baixa` ou `status = nao_resolvido` sem revisão humana. O `carregar.py` marca esses itens com `revisar = 1`.
-- O `sentido` é confiável, porque sai de regra. O `resumo` é texto de modelo e pode errar valor ou sentido: a taxa de erro medida está em `RELATORIO.md`.
+- O `sentido` é confiável, porque sai de regra. O `resumo` é texto de modelo e erra com frequência: na medição, 20% das frases da spec usada aqui passaram em todas as conferências (`RELATORIO.md`, seção 4).
+- **Não mostre** ao morador um `resumo` sem conferência. O `carregar.py` confere cada frase com as mesmas regras do avaliador (formato, sentido, valor, jargão e etapa citada) e grava `conferida`; `revisar = 1` quando a frase não passou, quando não foi resolvida ou quando a confiança é baixa. A confiança do modelo sozinha não serve: ele declarou `alta` em quase tudo, inclusive nos erros.
+- Onde `revisar = 1`, mostre o `texto_simples` da `TabelaTraducao` do Trabalho 1 para o `estado_depois`.
 
 ## No banco (`carregar.py`)
 
@@ -54,6 +55,6 @@ Para usar sem ler o JSON: `python3 carregar.py dados.jsonl --banco rastro.db`
 | :-- | :-- | :-- |
 | `LoteImportacao` | lote (data de referência), com `hash_sha256` do CSV | `coleta/bruto/lotes.json` |
 | `MudancaLote` | emenda, tipo e etapa, como no Trabalho 1 | `campos.mudancas_lote` e `campos.alteracoes` |
-| `ResumoMudanca` | emenda e par de lotes, chave (`lote_novo_id`, `codigo_emenda`) | `sentido`, `resumo`, `confianca`, `status`, `motivo`, `modelo`, `spec` e `revisar` |
+| `ResumoMudanca` | emenda e par de lotes, chave (`lote_novo_id`, `codigo_emenda`) | `sentido`, `resumo`, `confianca`, `status`, `motivo`, `modelo`, `spec`, mais `conferida` e `revisar`, calculados na carga |
 
 `ResumoMudanca` é uma tabela nova, que o modelo de dados do Trabalho 1 não tem: ver a decisão C4 em `RELATORIO.md`. Emenda `removida` só entra em `ResumoMudanca`, porque o Trabalho 1 não tem um `MudancaLote.tipo` para ela.

@@ -15,7 +15,7 @@ import json
 import sys
 from pathlib import Path
 
-from avaliar import avaliar, sentido_da_frase
+from avaliar import avaliar, etapa_coerente, sentido_da_frase
 
 AQUI = Path(__file__).resolve().parent
 GABARITO = AQUI / "gabarito.jsonl"
@@ -37,7 +37,7 @@ def medir(linhas: list[dict], gabarito: list[dict]) -> dict:
     colunas = SENTIDOS + ["nao_resolvido"]
     matriz = {s: {c: 0 for c in colunas} for s in SENTIDOS}
     soma = {c: 0 for c in CRITERIOS + ["correta"]}
-    erros, tempo, passos, nao_resolvidos = [], 0.0, 0, 0
+    erros, tempo, passos, nao_resolvidos, auditadas = [], 0.0, 0, 0, 0
     for g in gabarito:
         l = por_id[g["id"]]
         verdade = g["rotulo"]["tipo"]
@@ -52,6 +52,7 @@ def medir(linhas: list[dict], gabarito: list[dict]) -> dict:
             matriz[verdade][sentido_da_frase(l["resumo"])] += 1
         for c in soma:
             soma[c] += r[c]
+        auditadas += r["correta"] and etapa_coerente(l["resumo"], l["campos"])
         if not r["correta"]:
             erros.append({
                 "id": l["id"], "texto": l["texto"], "resumo": l["resumo"], "motivo": l["motivo"],
@@ -62,6 +63,7 @@ def medir(linhas: list[dict], gabarito: list[dict]) -> dict:
         "itens": n,
         "formato_valido": soma["formato"] / n,
         "acuracia": soma["correta"] / n,
+        "acuracia_auditada": auditadas / n,
         "tempo_total_s": round(tempo, 1),
         "passos_por_item": passos / n,
         "nao_resolvidos": nao_resolvidos,
@@ -90,6 +92,7 @@ def _md(nomes: list[str], medidas: list[dict], base: dict) -> str:
     linhas = [
         ("Formato válido", lambda m: _pct(m["formato_valido"])),
         ("Acurácia (passa nos 4 critérios)", lambda m: _pct(m["acuracia"])),
+        ("Acurácia auditada (pós-hoc: etapa citada mudou)", lambda m: _pct(m["acuracia_auditada"])),
         ("Tempo total", lambda m: f"{m['tempo_total_s']:.0f} s"),
         ("Passos por item", lambda m: f"{m['passos_por_item']:.2f}"),
         ("Não resolvidos", lambda m: str(m["nao_resolvidos"])),

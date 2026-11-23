@@ -6,11 +6,12 @@ Gerado por `medir.py`. Gabarito: 40 itens rotulados à mão (commit 93cf3d9).
 | :-- | --: | --: | --: |
 | Formato válido | 100.0% | 95.0% | 100.0% |
 | Acurácia (passa nos 4 critérios) | 17.5% | 12.5% | 100.0% |
+| Acurácia auditada (pós-hoc: etapa citada mudou) | 12.5% | 12.5% | 100.0% |
 | Tempo total | 222 s | 296 s | 0 s |
 | Passos por item | 3.08 | 3.15 | 0.00 |
 | Não resolvidos | 0 | 2 | 0 |
 | Critério: formato | 100.0% | 95.0% | 100.0% |
-| Critério: sentido | 97.5% | 95.0% | 100.0% |
+| Critério: sentido | 100.0% | 95.0% | 100.0% |
 | Critério: valor | 45.0% | 47.5% | 100.0% |
 | Critério: sem_jargao | 40.0% | 17.5% | 100.0% |
 
@@ -18,11 +19,11 @@ Gerado por `medir.py`. Gabarito: 40 itens rotulados à mão (commit 93cf3d9).
 
 Linha: sentido do gabarito. Coluna: sentido que a frase comunica.
 
-| gabarito \ frase | avanco | recuo |
-| :-- | --: | --: |
-| avanco | 37 | 0 |
-| recuo | 0 | 2 |
-| nova | 1 | 0 |
+| gabarito \ frase | avanco | recuo | nova |
+| :-- | --: | --: | --: |
+| avanco | 37 | 0 | 0 |
+| recuo | 0 | 2 | 0 |
+| nova | 0 | 0 | 1 |
 
 Erros (33):
 
@@ -53,7 +54,7 @@ Erros (33):
 - `rastro-mud-20261119-202671150001` falhou em valor, sem_jargao: A emenda aumentou o valor empregado e os restos a pagar em relação ao período anterior.
 - `rastro-mud-20261119-202630680003` falhou em valor, sem_jargao: A emenda parlamentar aumentou o valor empregado e os restos a pagar em relação ao período anterior.
 - `rastro-mud-20261119-202540770017` falhou em valor: Valor empregado e pago foram aumentados em R$ 29.380,20 e R$ 39.247,58, respectivamente.
-- `rastro-mud-20261119-202641300018` falhou em sentido, valor: A emenda foi registrada com confiança alta, pois é uma mudança de nova introdução no lote de 2026.
+- `rastro-mud-20261119-202641300018` falhou em valor: A emenda foi registrada com confiança alta, pois é uma mudança de nova introdução no lote de 2026.
 - `rastro-mud-20261119-202671120007` falhou em valor, sem_jargao: A emenda aumentou o valor empregado e os restos a pagar em relação ao período anterior.
 - `rastro-mud-20261119-202643060003` falhou em sem_jargao: Valor dos restos a pagar inscritos e pagos foram aumentados em R$ 1.947.808,54.
 - `rastro-mud-20261119-202628330007` falhou em sem_jargao: Valor dos restos a pagar inscritos e pagos foram aumentados em R$ 2.751.279,57

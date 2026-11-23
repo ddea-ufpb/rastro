@@ -3,6 +3,7 @@
     "itens": 40,
     "formato_valido": 1.0,
     "acuracia": 1.0,
+    "acuracia_auditada": 1.0,
     "tempo_total_s": 0.0,
     "passos_por_item": 0.0,
     "nao_resolvidos": 0,
@@ -60,12 +61,13 @@
     "itens": 40,
     "formato_valido": 1.0,
     "acuracia": 0.175,
+    "acuracia_auditada": 0.125,
     "tempo_total_s": 221.6,
     "passos_por_item": 3.075,
     "nao_resolvidos": 0,
     "criterios": {
       "formato": 1.0,
-      "sentido": 0.975,
+      "sentido": 1.0,
       "valor": 0.45,
       "sem_jargao": 0.4
     },
@@ -87,9 +89,9 @@
         "nao_resolvido": 0
       },
       "nova": {
-        "avanco": 1,
+        "avanco": 0,
         "recuo": 0,
-        "nova": 0,
+        "nova": 1,
         "removida": 0,
         "correcao_cadastral": 0,
         "nao_resolvido": 0
@@ -399,7 +401,6 @@
         "resumo": "A emenda foi registrada com confiança alta, pois é uma mudança de nova introdução no lote de 2026.",
         "motivo": "",
         "falhou": [
-          "sentido",
           "valor"
         ],
         "gabarito": "É uma emenda nova que acaba de entrar no sistema já garantindo a reserva de R$ 700 mil para a Saúde."
@@ -462,6 +463,7 @@
     "itens": 40,
     "formato_valido": 0.95,
     "acuracia": 0.125,
+    "acuracia_auditada": 0.125,
     "tempo_total_s": 296.0,
     "passos_por_item": 3.15,
     "nao_resolvidos": 2,

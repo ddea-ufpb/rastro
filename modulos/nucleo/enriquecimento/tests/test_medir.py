@@ -24,6 +24,14 @@ class TestMedir(unittest.TestCase):
         self.assertEqual(m["matriz"]["avanco"]["avanco"], 1)
         self.assertEqual(m["matriz"]["avanco"]["nao_resolvido"], 1)
         self.assertEqual([e["id"] for e in m["erros"]], [g[1]["id"]])
+        self.assertEqual(m["acuracia_auditada"], 0.5)
+
+    def test_auditoria_reprova_etapa_que_nao_mudou(self):
+        g = gabarito()[6:7]  # só o pago mudou
+        linha = {**corpus()[g[0]["id"]], "sentido": "avanco", "resumo": "Valor empregado e pago aumentaram R$ 9.800,00.",
+                 "confianca": "alta", "status": "resolvido", "motivo": "", "passos": 2, "segundos": 1.0}
+        m = medir([linha], g)
+        self.assertEqual((m["acuracia"], m["acuracia_auditada"]), (1.0, 0.0))
 
     def test_falta_item_do_gabarito(self):
         with self.assertRaises(ValueError):

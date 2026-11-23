@@ -5,17 +5,27 @@ import unittest
 from pathlib import Path
 
 from carregar import carregar
+from sentido import sentido_por_regra
 from tests.comum import corpus
 
 
 def _amostra():
     """Uma emenda alterada com mudança de estado, uma nova e uma removida."""
     itens = list(corpus().values())
-    alterada = next(i for i in itens if any(m["tipo"] == "estado_alterado" for m in i["campos"]["mudancas_lote"]))
+    def pago_subiu(i):
+        return any(a["campo"] == "pago_centavos" and (a.get("diferenca_centavos") or 0) > 0 for a in i["campos"]["alteracoes"])
+
+    alterada = next(
+        i for i in itens
+        if any(m["tipo"] == "estado_alterado" for m in i["campos"]["mudancas_lote"]) and sentido_por_regra(i["campos"]) == "avanco"
+        and pago_subiu(i)
+    )
+    pago = next(a for a in alterada["campos"]["alteracoes"] if a["campo"] == "pago_centavos")["diferenca_centavos"]
+    frase = f"Mais R$ {pago / 100:.2f} foram pagos.".replace(".", ",", 1) if pago < 100000 else f"Mais R$ {pago / 100000:.0f} mil foram pagos."
     nova = next(i for i in itens if i["campos"]["presenca"] == "nova")
     removida = next(i for i in itens if i["campos"]["presenca"] == "removida")
     return [
-        {**alterada, "sentido": "avanco", "resumo": "Pagou R$ 10 mil.", "confianca": "alta", "status": "resolvido", "motivo": "", "modelo": "qwen3:1.7b", "spec": "boa"},
+        {**alterada, "sentido": "avanco", "resumo": frase, "confianca": "alta", "status": "resolvido", "motivo": "", "modelo": "qwen3:1.7b", "spec": "boa"},
         {**nova, "sentido": "nova", "resumo": "Emenda nova.", "confianca": "baixa", "status": "resolvido", "motivo": "", "modelo": "qwen3:1.7b", "spec": "boa"},
         {**removida, "sentido": "removida", "resumo": "", "confianca": "", "status": "nao_resolvido", "motivo": "teto de passos", "modelo": "qwen3:1.7b", "spec": "boa"},
     ]
@@ -66,6 +76,12 @@ class TestCarregar(unittest.TestCase):
         carregar(self.dados, self.banco)
         depois = [self._q(f"SELECT count(*) FROM {t}")[0][0] for t in ("LoteImportacao", "MudancaLote", "ResumoMudanca")]
         self.assertEqual(antes, depois)
+
+    def test_frase_que_nao_passa_na_conferencia_vai_para_revisao(self):
+        self.linhas[0]["resumo"] = "O governo pagou R$ 999 milhões."  # valor inventado, confiança alta
+        self.dados.write_text("".join(json.dumps(l, ensure_ascii=False) + "\n" for l in self.linhas), encoding="utf-8")
+        carregar(self.dados, self.banco)
+        self.assertEqual(self._q("SELECT conferida, revisar FROM ResumoMudanca WHERE sentido='avanco'"), [(0, 1)])
 
     def test_carregar_de_novo_atualiza_o_resumo(self):
         carregar(self.dados, self.banco)

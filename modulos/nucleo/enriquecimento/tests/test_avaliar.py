@@ -1,6 +1,6 @@
 import unittest
 
-from avaliar import avaliar, sentido_da_frase, valores_da_frase
+from avaliar import avaliar, etapa_coerente, sentido_da_frase, valores_da_frase
 from tests.comum import corpus, gabarito
 
 
@@ -65,6 +65,18 @@ class TestAvaliar(unittest.TestCase):
         campos = corpus()[gabarito()[0]["id"]]["campos"]
         r = avaliar("Reservou mais R$ 405 mil e pagou R$ 2 milhões.", "alta", campos, "avanco")
         self.assertFalse(r["valor"])
+
+    def test_etapa_coerente_nas_frases_humanas(self):
+        c = corpus()
+        incoerentes = [g["id"] for g in gabarito() if not etapa_coerente(g["rotulo"]["frase"], c[g["id"]]["campos"])]
+        self.assertEqual(incoerentes, [])
+
+    def test_etapa_que_nao_mudou(self):
+        # item 7 do gabarito: só o pago mudou (+9.800,00); "empregado" é o empenhado escrito errado pelo modelo
+        campos = corpus()[gabarito()[6]["id"]]["campos"]
+        self.assertFalse(etapa_coerente("Valor empregado e pago foram aumentados em R$ 9.800,00.", campos))
+        self.assertFalse(etapa_coerente("O valor liquidado subiu R$ 9,8 mil.", campos))
+        self.assertTrue(etapa_coerente("Mais R$ 9,8 mil foram pagos.", campos))
 
     def test_sinonimos_de_cada_sentido(self):
         # exemplos da revisão adversária: frases certas que o léxico da rodada 1 reprovava

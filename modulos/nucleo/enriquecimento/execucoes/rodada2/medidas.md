@@ -6,6 +6,7 @@ Gerado por `medir.py`. Gabarito: 40 itens rotulados à mão (commit 93cf3d9).
 | :-- | --: | --: | --: |
 | Formato válido | 100.0% | 95.0% | 100.0% |
 | Acurácia (passa nos 4 critérios) | 30.0% | 5.0% | 100.0% |
+| Acurácia auditada (pós-hoc: etapa citada mudou) | 20.0% | 5.0% | 100.0% |
 | Tempo total | 312 s | 459 s | 0 s |
 | Passos por item | 3.10 | 2.88 | 0.00 |
 | Não resolvidos | 0 | 2 | 0 |

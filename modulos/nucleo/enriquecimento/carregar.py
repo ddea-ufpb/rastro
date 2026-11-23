@@ -8,8 +8,11 @@ branch trabalho1/joao-vitor, PR #2):
 LoteImportacao, MudancaLote (uma linha por tipo e etapa) e a tabela nova
 ResumoMudanca (uma linha por emenda e par de lotes, com a frase para o
 morador). Cria as tabelas que faltarem; rodar de novo não duplica nada.
-Item com confiança baixa ou não resolvido entra com revisar = 1: a frase
-não deve ir para a tela sem revisão. Tudo numa transação: se uma linha for
+Cada frase passa pela mesma conferência do avaliador (formato, sentido,
+valor, jargão e etapa citada); `conferida = 1` quando passa. Item não
+conferido ou com confiança baixa entra com revisar = 1: a frase não deve ir
+para a tela sem revisão. (Nas medições o modelo declarou confiança alta em
+quase tudo, então a confiança dele sozinha não serve de filtro.) Tudo numa transação: se uma linha for
 inválida, nada é gravado.
 """
 
@@ -20,6 +23,8 @@ import json
 import sqlite3
 import sys
 from pathlib import Path
+
+from avaliar import avaliar, etapa_coerente
 
 AQUI = Path(__file__).resolve().parent
 LOTES = AQUI.parent / "coleta" / "bruto" / "lotes.json"
@@ -62,6 +67,7 @@ CREATE TABLE IF NOT EXISTS ResumoMudanca (
     confianca TEXT CHECK (confianca IN ('alta', 'media', 'baixa', '')),
     status TEXT NOT NULL CHECK (status IN ('resolvido', 'nao_resolvido')),
     motivo TEXT NOT NULL,
+    conferida BOOLEAN NOT NULL,
     revisar BOOLEAN NOT NULL,
     modelo TEXT NOT NULL,
     spec TEXT NOT NULL,
@@ -122,15 +128,20 @@ def carregar(dados: Path, banco: Path) -> dict:
                         (c["codigo_emenda"], anterior, novo, m["tipo"], m["etapa"],
                          a["antes"] if a else None, a["depois"] if a else None, c["estado_antes"], c["estado_depois"]),
                     )
-                revisar = l["status"] != "resolvido" or l.get("confianca") == "baixa"
+                conferida = (
+                    l["status"] == "resolvido"
+                    and avaliar(l["resumo"], l.get("confianca"), c, l["sentido"])["correta"]
+                    and etapa_coerente(l["resumo"], c)
+                )
+                revisar = not conferida or l.get("confianca") == "baixa"
                 con.execute(
-                    "INSERT INTO ResumoMudanca (lote_novo_id, codigo_emenda, lote_anterior_id, sentido, resumo, confianca, status, motivo, revisar, modelo, spec) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                    "INSERT INTO ResumoMudanca (lote_novo_id, codigo_emenda, lote_anterior_id, sentido, resumo, confianca, status, motivo, "
+                    "conferida, revisar, modelo, spec) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
                     "ON CONFLICT (lote_novo_id, codigo_emenda) DO UPDATE SET sentido = excluded.sentido, resumo = excluded.resumo, "
-                    "confianca = excluded.confianca, status = excluded.status, motivo = excluded.motivo, revisar = excluded.revisar, "
-                    "modelo = excluded.modelo, spec = excluded.spec",
+                    "confianca = excluded.confianca, status = excluded.status, motivo = excluded.motivo, conferida = excluded.conferida, "
+                    "revisar = excluded.revisar, modelo = excluded.modelo, spec = excluded.spec",
                     (novo, c["codigo_emenda"], anterior, l["sentido"], l.get("resumo") or "", l.get("confianca") or "",
-                     l["status"], l.get("motivo") or "", revisar, l.get("modelo") or "", l.get("spec") or ""),
+                     l["status"], l.get("motivo") or "", conferida, revisar, l.get("modelo") or "", l.get("spec") or ""),
                 )
     finally:
         con.close()
