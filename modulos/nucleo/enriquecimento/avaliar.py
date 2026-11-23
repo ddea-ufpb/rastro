@@ -29,9 +29,12 @@ _VALOR = re.compile(
 
 # ordem importa: o primeiro que casar decide
 _LEXICO = [
-    ("recuo", r"cancel|reduz|\brecu(?:o|ou|ar)\b|\bcort|diminu|perdeu|n[aã]o (?:ser[aã]o?|vai|v[aã]o) mais"),
-    ("removida", r"removid|sumiu|saiu da lista|deixou de aparecer"),
-    ("nova", r"emenda nova|nova emenda|primeira vez|acaba de entrar|entrou (?:agora )?n[oa] (?:sistema|lista)"),
+    ("removida", r"removid|sumiu|saiu d[oa] (?:lista|sistema|base)|retirad[ao] d[ao] (?:lista|sistema|base)"
+                 r"|deixou de aparecer|n[aã]o aparece mais"),
+    ("recuo", r"cancel|reduz|\brecu(?:o|ou|ar)\b|\bcort|diminu|perdeu|devolv|estorn|desist|\btirou\b"
+              r"|n[aã]o (?:ser[aã]o?|vai|v[aã]o) mais"),
+    ("nova", r"emenda nova|nova emenda|[eé] nova\b|primeira vez|acaba de entrar|entrou (?:agora )?n[oa] (?:sistema|lista)"
+             r"|^(?:surgiu|apareceu|foi inclu[ií]da)\b"),
     ("correcao_cadastral", r"corrig|s[oó] (?:mudou|trocou) (?:o|a) (?:local|cadastro|nome)"),
 ]
 _JARGAO = re.compile(r"\bempenh|\bliquid|restos a pagar|\bRAP\b", re.IGNORECASE)

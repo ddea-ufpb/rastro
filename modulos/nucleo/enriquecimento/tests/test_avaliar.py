@@ -61,6 +61,24 @@ class TestAvaliar(unittest.TestCase):
         r = avaliar("A reserva passou de R$ 12,7 milhões para R$ 13,1 milhões.", "alta", campos, "avanco")
         self.assertTrue(r["valor"])
 
+    def test_um_valor_certo_e_um_errado_falha(self):
+        campos = corpus()[gabarito()[0]["id"]]["campos"]
+        r = avaliar("Reservou mais R$ 405 mil e pagou R$ 2 milhões.", "alta", campos, "avanco")
+        self.assertFalse(r["valor"])
+
+    def test_sinonimos_de_cada_sentido(self):
+        # exemplos da revisão adversária: frases certas que o léxico da rodada 1 reprovava
+        casos = {
+            "nova": ["Surgiu uma emenda de R$ 700 mil para a Saúde.", "Foi incluída uma emenda de R$ 700 mil.",
+                     "Apareceu uma emenda de R$ 700 mil.", "Esta emenda é nova e reserva R$ 700 mil."],
+            "removida": ["A emenda saiu do sistema.", "A emenda foi retirada da lista.", "A emenda não aparece mais."],
+            "recuo": ["R$ 9 mil foram devolvidos.", "R$ 9 mil foram estornados.", "O governo tirou R$ 9 mil da emenda.",
+                      "O governo desistiu de pagar R$ 9 mil."],
+        }
+        for esperado, frases in casos.items():
+            for frase in frases:
+                self.assertEqual(sentido_da_frase(frase), esperado, frase)
+
     def test_sentido_trocado_falha(self):
         campos = corpus()[gabarito()[0]["id"]]["campos"]
         r = avaliar("O governo cancelou R$ 405 mil.", "alta", campos, "avanco")

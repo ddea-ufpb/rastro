@@ -45,8 +45,44 @@ def carregar_entrada(entrada: str) -> list[dict]:
     raise ValueError("entrada é 'gabarito' ou 'corpus'")
 
 
+def _refazer(l: dict) -> bool:
+    """Item que falhou por causa do servidor (não do modelo) volta para a fila na retomada."""
+    return l["status"] != "resolvido" and l["motivo"].startswith("modelo indisponível")
+
+
+def _ler_saida(saida: Path, spec: str, modelo: str, max_passos: int, log) -> list[dict]:
+    """Linhas já gravadas que valem. Descarta a última se ficou truncada e as que vão ser refeitas."""
+    if not saida.exists():
+        return []
+    validas, descartadas = [], 0
+    for n, bruta in enumerate(saida.read_text(encoding="utf-8").splitlines(), 1):
+        if not bruta.strip():
+            continue
+        try:
+            l = json.loads(bruta)
+        except json.JSONDecodeError:
+            descartadas += 1
+            log(f"linha {n} de {saida} truncada: o item será refeito")
+            continue
+        if (l["spec"], l["modelo"], l["max_passos"]) != (spec, modelo, max_passos):
+            raise ValueError(
+                f"{saida} é de outra execução ({l['spec']}, {l['modelo']}, max_passos {l['max_passos']}); use outro --saida"
+            )
+        if _refazer(l):
+            descartadas += 1
+        else:
+            validas.append(l)
+    if descartadas:  # reescreve sem as linhas descartadas, para não duplicar ids
+        tmp = saida.with_suffix(saida.suffix + ".tmp")
+        tmp.write_text("".join(json.dumps(l, ensure_ascii=False) + "\n" for l in validas), encoding="utf-8")
+        tmp.replace(saida)
+    return validas
+
+
 def executar(itens, cliente, spec: str, saida: Path, max_passos: int = 6, limite: int | None = None, modelo: str = "", log=print) -> dict:
-    feitos = _jsonl(saida)
+    if max_passos < 1:
+        raise ValueError("max_passos tem que ser ≥ 1")
+    feitos = _ler_saida(saida, spec, modelo, max_passos, log)
     ja = {l["id"] for l in feitos}
     ferramentas = Ferramentas(spec)
     for l in feitos:

@@ -6,6 +6,7 @@ de servidor de modelo é trocar esta classe. Nos testes entra um cliente falso.
 
 from __future__ import annotations
 
+import http.client
 import json
 import random
 import time
@@ -15,6 +16,10 @@ import urllib.request
 
 class ErroModelo(Exception):
     """Falha ao falar com o modelo (rede, HTTP, resposta inválida)."""
+
+
+class ErroPermanente(ErroModelo):
+    """Erro que repetir não resolve (HTTP 4xx: modelo inexistente, pedido inválido)."""
 
 
 class CircuitoAberto(ErroModelo):
@@ -49,7 +54,7 @@ def com_retry(fn, tentativas: int = 3, base: float = 1.0, dormir=time.sleep, ale
     for i in range(tentativas):
         try:
             return fn()
-        except CircuitoAberto:
+        except (CircuitoAberto, ErroPermanente):
             raise
         except ErroModelo:
             if i == tentativas - 1:
@@ -82,7 +87,12 @@ class ClienteOllama:
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                 dados = json.loads(resp.read().decode("utf-8"))
-        except (urllib.error.URLError, TimeoutError, ConnectionError, json.JSONDecodeError) as e:
+        except urllib.error.HTTPError as e:
+            corpo = e.read().decode("utf-8", "replace")[:200]
+            classe = ErroPermanente if 400 <= e.code < 500 else ErroModelo
+            raise classe(f"HTTP {e.code}: {corpo}") from e
+        except (urllib.error.URLError, TimeoutError, ConnectionError, http.client.HTTPException,
+                json.JSONDecodeError, UnicodeDecodeError) as e:
             raise ErroModelo(str(e)) from e
         if "message" not in dados:
             raise ErroModelo(f"resposta sem 'message': {str(dados)[:200]}")

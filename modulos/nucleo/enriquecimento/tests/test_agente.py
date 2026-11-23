@@ -2,7 +2,7 @@ import json
 import unittest
 
 from agente import Ferramentas, enriquecer_item
-from cliente import CircuitoAberto, Disjuntor, ErroModelo, com_retry
+from cliente import CircuitoAberto, Disjuntor, ErroModelo, ErroPermanente, com_retry
 
 
 def chamada(nome, argumentos):
@@ -124,11 +124,29 @@ class TestLaco(unittest.TestCase):
         self.assertEqual(r["status"], "nao_resolvido")
         self.assertIn("modelo", r["motivo"])
 
+    def test_buscar_semelhante_mascara_valores(self):
+        # rodada 1: o modelo copiava a frase vizinha com os valores dela
+        f = Ferramentas("boa")
+        f.lembrar("avanco", "Saúde", "Pagou R$ 10 mil e reservou R$ 1,2 milhão, quase meio milhão a mais.")
+        saida = f.executar("buscar_semelhante", {"sentido": "avanco"})
+        self.assertNotIn("10 mil", saida)
+        self.assertNotIn("1,2", saida)
+        self.assertNotIn("meio milhão", saida)
+        self.assertIn("R$ X", saida)
+
+    def test_resumo_tem_que_ser_texto(self):
+        r, c = _rodar([chamada("registrar", {"resumo": ["a", "b"], "confianca": "alta"}), texto("x")], max_passos=2)
+        self.assertEqual(r["status"], "nao_resolvido")
+        self.assertIn("texto", c.historicos[1][-1]["content"])
+        f = Ferramentas("boa")
+        _, erro = f.normalizar("registrar", {"resumo": {"x": 1}, "confianca": "alta"})
+        self.assertIn("texto", erro)
+
     def test_buscar_semelhante_usa_so_o_que_foi_registrado(self):
         f = Ferramentas("boa")
         self.assertIn("nenhuma", f.executar("buscar_semelhante", {"sentido": "avanco"}))
         enriquecer_item(ITEM, "avanco", ClienteFalso([chamada("registrar", {"resumo": "Pagou R$ 10 mil.", "confianca": "alta"})]), f)
-        self.assertIn("Pagou R$ 10 mil.", f.executar("buscar_semelhante", {"sentido": "avanco", "funcao": "Saúde"}))
+        self.assertIn("Pagou R$ X.", f.executar("buscar_semelhante", {"sentido": "avanco", "funcao": "Saúde"}))
         self.assertIn("nenhuma", f.executar("buscar_semelhante", {"sentido": "recuo"}))
 
 
@@ -145,6 +163,28 @@ class TestResiliencia(unittest.TestCase):
             com_retry(falha, tentativas=3, base=1.0, dormir=esperas.append, aleatorio=lambda: 0.0)
         self.assertEqual(len(tentativas), 3)
         self.assertEqual(esperas, [1.0, 2.0])
+
+    def test_meio_aberto_reabre_se_falhar(self):
+        agora = [0.0]
+        d = Disjuntor(falhas_max=3, espera=30.0, relogio=lambda: agora[0])
+        for _ in range(3):
+            d.falha()
+        agora[0] = 31.0
+        d.permitir()
+        d.falha()  # a tentativa do meio-aberto falhou: abre de novo na hora
+        with self.assertRaises(CircuitoAberto):
+            d.permitir()
+
+    def test_erro_permanente_nao_repete(self):
+        tentativas = []
+
+        def falha():
+            tentativas.append(1)
+            raise ErroPermanente("HTTP 404: modelo não existe")
+
+        with self.assertRaises(ErroPermanente):
+            com_retry(falha, tentativas=3, dormir=lambda s: None)
+        self.assertEqual(len(tentativas), 1)
 
     def test_disjuntor_abre_e_fecha(self):
         agora = [0.0]

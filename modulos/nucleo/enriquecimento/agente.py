@@ -10,6 +10,7 @@ nem para eval.
 from __future__ import annotations
 
 import json
+import re
 import time
 import unicodedata
 from pathlib import Path
@@ -27,6 +28,18 @@ SISTEMA = (
     "decidido por regra e vem no item: a sua frase tem que comunicar esse sentido. Use as "
     "ferramentas e termine chamando registrar uma única vez."
 )
+
+
+_VALOR = re.compile(
+    r"(?:quase\s+)?meio\s+milh[aã]o(?:\s+de\s+reais)?"
+    r"|R\$\s*[\d.,]*\d(?:\s*(?:mil|milh(?:ão|ões|ao|oes)|bilh(?:ão|ões|ao|oes))\b)?"
+    r"|\d[\d.,]*\s*(?:mil|milh(?:ão|ões|ao|oes)|bilh(?:ão|ões|ao|oes))\b(?:\s+de\s+reais)?",
+    re.IGNORECASE,
+)
+
+
+def _mascarar(frase: str) -> str:
+    return _VALOR.sub("R$ X", frase)
 
 
 def _chave(s: str) -> str:
@@ -90,6 +103,8 @@ class Ferramentas:
             v = argumentos.get(campo)
             if v is None:
                 continue
+            if isinstance(v, bool) or not isinstance(v, (str, int, float)):  # todos os parâmetros são string
+                return None, f"erro: {campo} tem que ser texto"
             v = " ".join(str(v).split())
             if "enum" in prop:
                 v = _chave(v)
@@ -151,7 +166,8 @@ class Ferramentas:
             mesmos = mesma_area or mesmos
         if not mesmos:
             return "nenhuma frase registrada ainda para esse sentido"
-        return json.dumps([r["resumo"] for r in mesmos[-2:]], ensure_ascii=False)
+        # só o tom: os valores de outro item viram "R$ X" (na rodada 1 o modelo copiava os números)
+        return json.dumps([_mascarar(r["resumo"]) for r in mesmos[-2:]], ensure_ascii=False)
 
     def lembrar(self, sentido: str, funcao: str, resumo: str) -> None:
         self.registradas.append({"sentido": sentido, "funcao": funcao, "resumo": resumo})
