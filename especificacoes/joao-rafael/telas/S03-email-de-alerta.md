@@ -1,0 +1,30 @@
+## S03 · E-mail de alerta
+
+- **Superfície · ator:** E-mail · Quem assinou.
+- **Objetivo:** Avisar, num único e-mail por importação, quais emendas do filtro mudaram de fase e levar a cada uma.
+- **Chega de / vai para:**
+  - Chega de: O01 (a importação publicada enfileira os alertas; o despachante envia).
+  - Vai para: P04 (cada emenda), S02 ("Gerenciar ou cancelar").
+- **Mostra:**
+  - Assunto: "Rastro: N emendas de `Assinatura.filtro_nome` mudaram de fase".
+  - Para cada `MudancaFase`: `Emenda.codigo`, `Autor.nome`, `TraducaoFase.texto_simples` da fase anterior → da nova, com `TraducaoFase.termo_oficial` entre parênteses, e o link da emenda.
+  - Rodapé: "Portal da Transparência, atualizado em dd/mm/aaaa, importação #n", o aviso do REQ-83 e o link "Gerenciar ou cancelar".
+- **Coleta:** nenhum campo (e-mail só de leitura).
+- **Ações:**
+  - Link de uma emenda → P04 (`obter_emenda`).
+  - "Gerenciar ou cancelar" → S02 (`obter_assinatura`).
+  - Cancelamento de um clique pelo cliente de e-mail (`List-Unsubscribe`) → (`excluir_assinatura`).
+- **Estados:**
+  - **carregando:** não se aplica a e-mail; o equivalente é o alerta `pendente` ou `enviando` na fila (REQ-67).
+  - **vazio:** não é enviado e-mail sem mudança: o despachante só cria alerta quando há `MudancaFase` no filtro (REQ-65).
+  - **erro:** falha de SMTP → nova tentativa até 3 vezes, depois `falhou`, sem e-mail parcial (REQ-68).
+  - **sucesso:** um e-mail com todas as mudanças da importação (REQ-66, REQ-71).
+  - **offline:** o e-mail é texto completo e legível sem carregar imagens nem rede (REQ-71).
+  - **sem permissão:** só chega a quem confirmou (REQ-64); o link de gestão leva o token no fragmento (REQ-72).
+- **Regras:**
+  - No máximo um e-mail por assinatura e importação (REQ-66).
+  - Nenhuma palavra do REQ-82; a mudança é descrita com os textos da tradução (REQ-31).
+  - Sem pixel de rastreio e sem link encurtado (`contratos/email-alerta.md`).
+- **Requisitos · contrato:** REQ-31, REQ-65, REQ-66, REQ-70, REQ-71, REQ-72, REQ-81, REQ-82 · (`email:alerta`), `contratos/email-alerta.md`.
+- **Acessibilidade:** versão em texto simples com o mesmo conteúdo; HTML semântico (lista de mudanças), `lang="pt-BR"`, links com texto descritivo ("Ver emenda 202512345678"), sem tabela de layout.
+- **Anexo:** sem mock; o conteúdo exato está em `../arquitetura/contratos/email-alerta.md`.

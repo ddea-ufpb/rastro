@@ -1,0 +1,39 @@
+## P02 · Município
+
+- **Superfície · ator:** Interface web · Morador e gestor municipal; também jornalista.
+- **Objetivo:** Mostrar o que foi destinado à cidade e o que entidades da cidade receberam, em blocos separados, com a fase de cada emenda e o que não entrou.
+- **Chega de / vai para:**
+  - Chega de: P01, P03 (município de uma linha), P04 (município de destino), P06 (sede da entidade), P07 (linha de município), P09 (descartes por município), S01 ("Voltar"), S02 (filtro da assinatura), link externo.
+  - Vai para: P03 (lista filtrada pela cidade), P04 (uma emenda), P06 (uma entidade), P09 (descartes), P10 (marca da tradução), S01 ("Receber alertas desta cidade").
+- **Mostra:**
+  - Título `MunicipioDetalhe.municipio.nome` – PB.
+  - Recibo 1, "Destinado à cidade": `destinado.quantidade_emendas`, `destinado.empenhado` e `destinado.pago_total`, cada valor com o carimbo "Origem"; contagem por fase (`destinado.por_fase[].fase.texto_simples`, `termo_oficial`, `quantidade`) com a marca "tradução v`traducao_versao`"; as 10 emendas mais recentes (`EmendaResumo.codigo`, `autor_nome`, `fase`, `empenhado_centavos`).
+  - Recibo 2, separado por corte serrilhado, "Recebido por entidades da cidade": `recebido_por_entidades.quantidade_entidades`, `recebido_por_entidades.valor` e a lista de entidades (`FavorecidoResumo.razao_social`, `natureza`), em ordem alfabética.
+  - Nota fixa entre os recibos: "Os dois números não se somam: uma emenda para a cidade pode pagar uma entidade da cidade, e uma entidade da cidade pode receber de emenda de outro destino."
+  - Linha "O que não entrou": `descartes.total` e `descartes.por_motivo` em frases ("812 pagamentos a pessoas físicas não são exibidos").
+  - Aviso do REQ-83.
+- **Coleta:** nenhum campo digitado. `codigo_ibge` · texto de 7 dígitos · obrigatório, vem da rota.
+- **Ações:**
+  - "Ver todas as emendas da cidade" → P03 (`listar_emendas`) com `?municipio_ibge=`.
+  - "Ver as que ainda não foram pagas" → P03 (`listar_emendas`) com `?municipio_ibge=&fase=empenhada`.
+  - Uma emenda → P04 (`obter_emenda`).
+  - Uma entidade → P06 (`obter_favorecido`).
+  - "O que não entrou" → P09 (`obter_importacao`) aberta na importação vigente.
+  - "tradução v`n`" → P10 (`listar_traducoes`).
+  - "Receber alertas desta cidade" → S01 (`listar_municipios`) com a cidade escolhida.
+  - "Origem" de um valor → painel com a proveniência já recebida → ação local · sem chamada à API (REQ-81).
+- **Estados:**
+  - **carregando:** esqueleto dos dois recibos (REQ-76).
+  - **vazio:** `quantidade_emendas = 0` e `quantidade_entidades = 0` → "Nenhuma emenda com destino nesta cidade e nenhuma entidade da cidade recebeu pagamentos na importação de dd/mm/aaaa", e, se `descartes.total > 0`, a linha "O que não entrou" continua visível (REQ-77, ADR-0009).
+  - **erro:** 404 → "Não achamos esse município da Paraíba" com link para P01 (REQ-41); 5xx → `request_id` e "Tentar de novo" (REQ-78).
+  - **sucesso:** os dois recibos e a linha de descartes (REQ-40, REQ-42).
+  - **offline:** "Sem conexão" (REQ-79).
+  - **sem permissão:** tela pública; limite por IP (REQ-58).
+  - **sem importação publicada:** 503 → "Os dados ainda não foram importados." (REQ-56).
+- **Regras:**
+  - Os dois recibos nunca têm total comum (REQ-42, ADR-0010).
+  - A lista de entidades é alfabética, nunca por valor (REQ-52).
+  - Descartes aparecem mesmo quando os blocos têm dados (REQ-26, ADR-0009).
+- **Requisitos · contrato:** REQ-26, REQ-31, REQ-40, REQ-41, REQ-42, REQ-56, REQ-75, REQ-76, REQ-77, REQ-78, REQ-79, REQ-81, REQ-83 · `GET /municipios/{codigo_ibge}` (`obter_municipio`).
+- **Acessibilidade:** cada recibo é uma `<section>` com `<h2>`; a contagem por fase é uma tabela com cabeçalho; o corte serrilhado é decorativo (`aria-hidden`).
+- **Anexo:** sem mock; tela especificada por descrição detalhada.

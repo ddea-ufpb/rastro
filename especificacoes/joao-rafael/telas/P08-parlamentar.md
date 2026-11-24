@@ -1,0 +1,32 @@
+## P08 · Parlamentar
+
+- **Superfície · ator:** Interface web · Jornalista; também morador.
+- **Objetivo:** Mostrar as emendas de um autor ligadas à PB e as somas de cada etapa, sem posição nem nota.
+- **Chega de / vai para:**
+  - Chega de: P04 (autor), P07 (linha), S01 ("Voltar"), S02 (filtro da assinatura).
+  - Vai para: P04 (uma emenda), P03 ("Ver todas"), P07 ("Comparar com outros"), S01 ("Receber alertas deste parlamentar").
+- **Mostra:**
+  - Cabeçalho: `AutorDetalhe.nome`, `tipo` (parlamentar, bancada, comissão, relator).
+  - Recibo de somas: `somas.quantidade_emendas`, `somas.empenhado_centavos`, `somas.liquidado_centavos`, `somas.pago_total_centavos`, em linhas separadas.
+  - Tabela das emendas: `EmendaResumo.codigo`, `ano`, `localidade_texto`, `funcao_nome`, `fase.texto_simples` + `termo_oficial`, `empenhado_centavos`, `pago_total_centavos`.
+  - Aviso do REQ-83.
+- **Coleta:** nenhum campo digitado. `codigo` (do autor) · texto até 20 caracteres · obrigatório, vem da rota.
+- **Ações:**
+  - Uma emenda → P04 (`obter_emenda`).
+  - "Ver todas com filtros" → P03 (`listar_emendas`) com `?autor_codigo=`.
+  - "Comparar com outros" → P07 (`obter_agregacoes`) com `?por=parlamentar`.
+  - "Receber alertas deste parlamentar" → S01 (`listar_municipios`) com o filtro preenchido.
+- **Estados:**
+  - **carregando:** esqueleto (REQ-76).
+  - **vazio:** autor sem emendas ligadas à PB → "Nenhuma emenda deste autor ligada à Paraíba na importação de dd/mm/aaaa." (REQ-77).
+  - **erro:** 404 → "Autor não encontrado" (REQ-53); 5xx → `request_id` (REQ-78).
+  - **sucesso:** recibo e tabela (REQ-53).
+  - **offline:** "Sem conexão" (REQ-79).
+  - **sem permissão:** tela pública; limite por IP (REQ-58).
+  - **sem importação publicada:** 503 (REQ-56).
+- **Regras:**
+  - Nenhuma posição, percentil, nota ou comparação com "média" (REQ-52).
+  - Nenhuma palavra do REQ-82; nenhuma cor de alarme.
+- **Requisitos · contrato:** REQ-52, REQ-53, REQ-56, REQ-58, REQ-75, REQ-76, REQ-77, REQ-78, REQ-79, REQ-82, REQ-83 · `GET /parlamentares/{codigo}` (`obter_parlamentar`).
+- **Acessibilidade:** recibo como lista de definição (`<dl>`); tabela com `<caption>`.
+- **Anexo:** sem mock; tela especificada por descrição detalhada.

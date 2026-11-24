@@ -1,0 +1,37 @@
+## P05 · Quem recebeu (pagamentos da emenda)
+
+- **Superfície · ator:** Interface web · Jornalista e gestor municipal; também morador.
+- **Objetivo:** Mostrar quais entidades receberam o dinheiro de uma emenda, quando e quanto, e quantos pagamentos não são exibidos e por quê.
+- **Chega de / vai para:**
+  - Chega de: P04 ("Quem recebeu").
+  - Vai para: P06 (uma entidade), P04 ("Voltar à emenda"), P09 (origem).
+- **Mostra:**
+  - Cabeçalho: `PagamentosEmenda.emenda_codigo` com link para P04.
+  - Tabela: `razao_social`, `cnpj` (formatado), `natureza`, `ano_mes`, `valor` (com "Origem"); filiais da mesma `cnpj_raiz` ficam agrupadas sob uma linha "Mesma pessoa jurídica, N filiais", cada filial com o próprio valor.
+  - Linha final "Soma dos pagamentos exibidos": `soma_centavos`.
+  - Recibo separado "Não exibidos": `descartes.total` e `descartes.por_motivo` em frases ("14 pagamentos a pessoas físicas, que o Rastro não guarda").
+  - Estornos (valor negativo) com o rótulo "estorno".
+  - Aviso do REQ-83.
+- **Coleta:** nenhum campo digitado. `codigo` · texto de 12 dígitos · obrigatório, vem da rota.
+- **Ações:**
+  - Uma entidade → P06 (`obter_favorecido`).
+  - "Voltar à emenda" → P04 (`obter_emenda`).
+  - "Origem" → painel local → ação local · sem chamada à API (REQ-81); "Ver importação" → P09 (`obter_importacao`).
+  - "Copiar CNPJ" → ação local · sem chamada à API (REQ-81).
+  - "Exportar CSV" → ação local · sem chamada à API (REQ-81).
+- **Estados:**
+  - **carregando:** esqueleto da tabela (REQ-76).
+  - **vazio:** nenhum pagamento a pessoa jurídica → "Nenhum pagamento a entidade registrado para esta emenda", com o recibo "Não exibidos" quando houver descartes (REQ-77, REQ-16).
+  - **erro:** 404 → "Emenda não encontrada" com link para P04 (REQ-46); 5xx → `request_id` (REQ-78).
+  - **sucesso:** tabela, soma e "Não exibidos" (REQ-47).
+  - **offline:** "Sem conexão" (REQ-79).
+  - **sem permissão:** tela pública; limite por IP (REQ-58).
+  - **sem importação publicada:** 503 (REQ-56).
+- **Regras:**
+  - Nenhum nome ou CPF de pessoa aparece; só a contagem por motivo (REQ-16, REQ-17, ADR-0004).
+  - Estornos entram na soma com sinal (REQ-23).
+  - Filiais agrupadas sem total da raiz (REQ-27).
+  - Nota fixa: "A soma pode ser menor que o valor pago da emenda: pagamentos a pessoas e a órgãos sem CNPJ não são exibidos."
+- **Requisitos · contrato:** REQ-16, REQ-17, REQ-23, REQ-27, REQ-29, REQ-46, REQ-47, REQ-56, REQ-58, REQ-75, REQ-76, REQ-77, REQ-78, REQ-79, REQ-81, REQ-83, REQ-84 · `GET /emendas/{codigo}/pagamentos` (`listar_pagamentos_emenda`).
+- **Acessibilidade:** tabela com `<caption>`; o grupo de filiais usa `rowgroup` com cabeçalho; "estorno" é texto, não só cor.
+- **Anexo:** sem mock; tela especificada por descrição detalhada.

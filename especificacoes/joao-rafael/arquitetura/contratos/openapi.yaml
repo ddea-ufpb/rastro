@@ -1,0 +1,773 @@
+openapi: 3.1.0
+info:
+  title: Rastro API
+  version: 1.0.0
+  summary: Emendas parlamentares federais ligadas à Paraíba, com fase traduzida e proveniência de cada valor.
+  description: |
+    Contrato da API do Rastro (REQ-57). Todo valor monetário vem com a sua
+    proveniência (REQ-29, ADR-0003). Valores em centavos inteiros. Erros em
+    application/problem+json (REQ-59). Leituras usam só a importação vigente
+    (REQ-13). Cada operação declara o módulo dono em `x-modulo`.
+  license:
+    name: MIT
+servers:
+  - url: /api/v1
+tags:
+  - name: status
+  - name: municipios
+  - name: emendas
+  - name: favorecidos
+  - name: agregacoes
+  - name: importacoes
+  - name: assinaturas
+
+paths:
+  /status:
+    get:
+      operationId: obter_status
+      tags: [status]
+      x-modulo: consulta
+      summary: Importação vigente e versão da tradução (REQ-60)
+      responses:
+        "200":
+          description: Status
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Status" }
+        "503": { $ref: "#/components/responses/SemImportacao" }
+
+  /municipios:
+    get:
+      operationId: listar_municipios
+      tags: [municipios]
+      x-modulo: consulta
+      summary: Municípios da PB, com busca por nome
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, minLength: 2, maxLength: 60 }
+      responses:
+        "200":
+          description: Municípios em ordem alfabética
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MunicipioResumo" }
+        "422": { $ref: "#/components/responses/Invalido" }
+        "429": { $ref: "#/components/responses/LimiteTaxa" }
+
+  /municipios/{codigo_ibge}:
+    get:
+      operationId: obter_municipio
+      tags: [municipios]
+      x-modulo: consulta
+      summary: Destinado à cidade, recebido por entidades da cidade e descartes (REQ-40, REQ-42)
+      parameters:
+        - $ref: "#/components/parameters/CodigoIbge"
+      responses:
+        "200":
+          description: Município
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MunicipioDetalhe" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+        "422": { $ref: "#/components/responses/Invalido" }
+        "503": { $ref: "#/components/responses/SemImportacao" }
+
+  /emendas:
+    get:
+      operationId: listar_emendas
+      tags: [emendas]
+      x-modulo: consulta
+      summary: Lista com filtros e cursor (REQ-43, REQ-44)
+      parameters:
+        - { name: municipio_ibge, in: query, schema: { type: string, pattern: "^25\\d{5}$" } }
+        - { name: autor_codigo, in: query, schema: { type: string, maxLength: 20 } }
+        - { name: funcao_codigo, in: query, schema: { type: string, pattern: "^\\d{1,2}$" } }
+        - { name: ano, in: query, schema: { type: integer, minimum: 2014, maximum: 2100 } }
+        - { name: fase, in: query, schema: { $ref: "#/components/schemas/Fase" } }
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limite, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+      responses:
+        "200":
+          description: Página de emendas
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [itens, proximo_cursor, proveniencia]
+                properties:
+                  itens:
+                    type: array
+                    items: { $ref: "#/components/schemas/EmendaResumo" }
+                  proximo_cursor: { type: [string, "null"] }
+                  proveniencia: { $ref: "#/components/schemas/Proveniencia" }
+        "422": { $ref: "#/components/responses/Invalido" }
+        "429": { $ref: "#/components/responses/LimiteTaxa" }
+        "503": { $ref: "#/components/responses/SemImportacao" }
+
+  /emendas/{codigo}:
+    get:
+      operationId: obter_emenda
+      tags: [emendas]
+      x-modulo: consulta
+      summary: Valores por etapa com proveniência e fase traduzida (REQ-45, REQ-46)
+      parameters:
+        - $ref: "#/components/parameters/CodigoEmenda"
+      responses:
+        "200":
+          description: Emenda
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmendaDetalhe" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+        "422": { $ref: "#/components/responses/Invalido" }
+        "503": { $ref: "#/components/responses/SemImportacao" }
+
+  /emendas/{codigo}/pagamentos:
+    get:
+      operationId: listar_pagamentos_emenda
+      tags: [emendas]
+      x-modulo: consulta
+      summary: Quem recebeu, com soma e descartes da emenda (REQ-47)
+      parameters:
+        - $ref: "#/components/parameters/CodigoEmenda"
+      responses:
+        "200":
+          description: Pagamentos
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PagamentosEmenda" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+        "422": { $ref: "#/components/responses/Invalido" }
+        "503": { $ref: "#/components/responses/SemImportacao" }
+
+  /favorecidos:
+    get:
+      operationId: listar_favorecidos
+      tags: [favorecidos]
+      x-modulo: consulta
+      summary: Busca por razão social, grafia ou CNPJ, em ordem alfabética (REQ-50)
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 3, maxLength: 80 } }
+        - { name: limite, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses:
+        "200":
+          description: Favorecidos
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FavorecidoResumo" }
+        "422": { $ref: "#/components/responses/Invalido" }
+        "429": { $ref: "#/components/responses/LimiteTaxa" }
+        "503": { $ref: "#/components/responses/SemImportacao" }
+
+  /favorecidos/{cnpj}:
+    get:
+      operationId: obter_favorecido
+      tags: [favorecidos]
+      x-modulo: consulta
+      summary: Entidade por CNPJ, com grafias, filiais e sugestões visíveis (REQ-48, REQ-49)
+      parameters:
+        - name: cnpj
+          in: path
+          required: true
+          schema: { type: string, pattern: "^\\d{14}$" }
+      responses:
+        "200":
+          description: Favorecido
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FavorecidoDetalhe" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+        "422": { $ref: "#/components/responses/Invalido" }
+        "503": { $ref: "#/components/responses/SemImportacao" }
+
+  /agregacoes:
+    get:
+      operationId: obter_agregacoes
+      tags: [agregacoes]
+      x-modulo: consulta
+      summary: Somas por etapa agrupadas, em ordem alfabética, sem ranking (REQ-51, REQ-52)
+      parameters:
+        - name: por
+          in: query
+          required: true
+          schema: { type: string, enum: [parlamentar, municipio, funcao] }
+        - { name: ano, in: query, schema: { type: integer, minimum: 2014, maximum: 2100 } }
+        - name: ordenar
+          in: query
+          description: Só ordem alfabética. Qualquer outro valor responde 422 (REQ-52).
+          schema: { type: string, enum: [nome], default: nome }
+      responses:
+        "200":
+          description: Grupos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [por, grupos, proveniencia]
+                properties:
+                  por: { type: string }
+                  grupos:
+                    type: array
+                    items: { $ref: "#/components/schemas/Grupo" }
+                  proveniencia: { $ref: "#/components/schemas/Proveniencia" }
+        "422": { $ref: "#/components/responses/Invalido" }
+        "429": { $ref: "#/components/responses/LimiteTaxa" }
+        "503": { $ref: "#/components/responses/SemImportacao" }
+
+  /parlamentares/{codigo}:
+    get:
+      operationId: obter_parlamentar
+      tags: [agregacoes]
+      x-modulo: consulta
+      summary: Emendas do autor ligadas à PB e somas por etapa, sem posição (REQ-53)
+      parameters:
+        - name: codigo
+          in: path
+          required: true
+          schema: { type: string, maxLength: 20 }
+      responses:
+        "200":
+          description: Autor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AutorDetalhe" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+        "503": { $ref: "#/components/responses/SemImportacao" }
+
+  /importacoes:
+    get:
+      operationId: listar_importacoes
+      tags: [importacoes]
+      x-modulo: ingestao
+      summary: Importações com status, contagens e descartes por motivo (REQ-54)
+      parameters:
+        - { name: limite, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses:
+        "200":
+          description: Importações, da mais recente para a mais antiga
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Importacao" }
+
+  /importacoes/{id}:
+    get:
+      operationId: obter_importacao
+      tags: [importacoes]
+      x-modulo: ingestao
+      summary: Uma importação, com descartes por motivo e por município (REQ-55)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: Importação
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportacaoDetalhe" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+
+  /fases:
+    get:
+      operationId: listar_traducoes
+      tags: [status]
+      x-modulo: nucleo
+      summary: Tabela de tradução vigente e versões anteriores (REQ-31, REQ-32)
+      parameters:
+        - { name: versao, in: query, schema: { type: integer, minimum: 1 } }
+      responses:
+        "200":
+          description: Tradução
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Traducao" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+
+  /assinaturas:
+    post:
+      operationId: criar_assinatura
+      tags: [assinaturas]
+      x-modulo: saida
+      summary: Pede assinatura; sempre 202 (REQ-61, REQ-62, REQ-73, REQ-74)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, filtro]
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+                filtro: { $ref: "#/components/schemas/Filtro" }
+      responses:
+        "202":
+          description: Se o pedido for válido, um e-mail de confirmação foi ou será enviado. A resposta é a mesma exista ou não assinatura.
+        "422": { $ref: "#/components/responses/Invalido" }
+        "429": { $ref: "#/components/responses/LimiteTaxa" }
+
+  /assinaturas/confirmar:
+    post:
+      operationId: confirmar_assinatura
+      tags: [assinaturas]
+      x-modulo: saida
+      summary: Confirma com o token do e-mail e devolve o token de gestão (REQ-63, REQ-64)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [token]
+              properties:
+                token: { type: string, minLength: 43, maxLength: 43 }
+      responses:
+        "200":
+          description: Assinatura ativa
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [assinatura, token_gestao]
+                properties:
+                  assinatura: { $ref: "#/components/schemas/Assinatura" }
+                  token_gestao: { type: string }
+        "410": { $ref: "#/components/responses/TokenInvalido" }
+        "422": { $ref: "#/components/responses/Invalido" }
+
+  /assinaturas/minha:
+    parameters:
+      - $ref: "#/components/parameters/TokenAssinatura"
+    get:
+      operationId: obter_assinatura
+      tags: [assinaturas]
+      x-modulo: saida
+      summary: Assinaturas do e-mail dono do token (REQ-72)
+      responses:
+        "200":
+          description: Assinaturas
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [email_mascarado, assinaturas]
+                properties:
+                  email_mascarado: { type: string, examples: ["j***@g***.com"] }
+                  assinaturas:
+                    type: array
+                    items: { $ref: "#/components/schemas/Assinatura" }
+        "410": { $ref: "#/components/responses/TokenInvalido" }
+    delete:
+      operationId: excluir_assinatura
+      tags: [assinaturas]
+      x-modulo: saida
+      summary: Cancela tudo e apaga o e-mail (REQ-70)
+      responses:
+        "204": { description: "E-mail, assinaturas e alertas apagados" }
+        "410": { $ref: "#/components/responses/TokenInvalido" }
+
+components:
+  parameters:
+    CodigoIbge:
+      name: codigo_ibge
+      in: path
+      required: true
+      schema: { type: string, pattern: "^\\d{7}$" }
+    CodigoEmenda:
+      name: codigo
+      in: path
+      required: true
+      schema: { type: string, pattern: "^\\d{12}$" }
+    TokenAssinatura:
+      name: X-Token-Assinatura
+      in: header
+      required: true
+      description: Token de gestão. Nunca aceito na query string (REQ-72).
+      schema: { type: string, minLength: 43, maxLength: 43 }
+
+  responses:
+    Invalido:
+      description: Parâmetro inválido (REQ-44)
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Erro" }
+    NaoEncontrado:
+      description: Recurso inexistente na importação vigente
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Erro" }
+    SemImportacao:
+      description: Nenhuma importação publicada (REQ-56)
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Erro" }
+    LimiteTaxa:
+      description: Limite por IP (REQ-58)
+      headers:
+        Retry-After:
+          schema: { type: integer }
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Erro" }
+    TokenInvalido:
+      description: Token expirado, usado ou desconhecido (REQ-63)
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Erro" }
+
+  schemas:
+    Erro:
+      type: object
+      required: [type, title, status, codigo, request_id]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        codigo:
+          type: string
+          enum:
+            - parametro_invalido
+            - municipio_nao_encontrado
+            - emenda_nao_encontrada
+            - favorecido_nao_encontrado
+            - autor_nao_encontrado
+            - importacao_nao_encontrada
+            - versao_nao_encontrada
+            - sem_importacao_publicada
+            - limite_de_taxa
+            - token_invalido
+            - erro_interno
+        campo: { type: string, description: Parâmetro inválido, quando houver }
+        request_id: { type: string }
+
+    Fase:
+      type: string
+      enum: [sem_empenho, cancelada, empenhada, liquidada, paga_em_parte, paga]
+
+    Proveniencia:
+      type: object
+      required: [fonte, importacao_id, extraido_em, fonte_last_modified, url_download]
+      properties:
+        fonte: { type: string, examples: [cgu_emendas] }
+        arquivo: { type: string }
+        linha: { type: integer }
+        importacao_id: { type: integer }
+        extraido_em: { type: string, format: date-time }
+        fonte_last_modified: { type: string, format: date-time }
+        url_download: { type: string, format: uri }
+
+    ValorComProveniencia:
+      type: object
+      required: [valor_centavos, proveniencia]
+      properties:
+        valor_centavos: { type: integer }
+        proveniencia: { $ref: "#/components/schemas/Proveniencia" }
+
+    FaseTraduzida:
+      type: object
+      required: [fase, texto_simples, termo_oficial, traducao_versao]
+      properties:
+        fase: { $ref: "#/components/schemas/Fase" }
+        texto_simples: { type: string, examples: ["O dinheiro foi reservado e ainda não foi pago"] }
+        termo_oficial: { type: string, examples: [empenhada] }
+        traducao_versao: { type: integer }
+
+    Status:
+      type: object
+      required: [importacao_vigente, traducao_versao]
+      properties:
+        importacao_vigente:
+          type: object
+          required: [id, publicada_em, fonte_last_modified, extraido_em]
+          properties:
+            id: { type: integer }
+            publicada_em: { type: string, format: date-time }
+            fonte_last_modified: { type: string, format: date-time }
+            extraido_em: { type: string, format: date-time }
+        traducao_versao: { type: integer }
+
+    MunicipioResumo:
+      type: object
+      required: [codigo_ibge, nome]
+      properties:
+        codigo_ibge: { type: string }
+        nome: { type: string }
+
+    MunicipioDetalhe:
+      type: object
+      required: [municipio, destinado, recebido_por_entidades, descartes, proveniencia]
+      properties:
+        municipio: { $ref: "#/components/schemas/MunicipioResumo" }
+        destinado:
+          type: object
+          description: Emendas com destino na cidade (ADR-0010)
+          required: [quantidade_emendas, por_fase, empenhado, pago_total]
+          properties:
+            quantidade_emendas: { type: integer }
+            por_fase:
+              type: array
+              items:
+                type: object
+                required: [fase, quantidade]
+                properties:
+                  fase: { $ref: "#/components/schemas/FaseTraduzida" }
+                  quantidade: { type: integer }
+            empenhado: { $ref: "#/components/schemas/ValorComProveniencia" }
+            pago_total: { $ref: "#/components/schemas/ValorComProveniencia" }
+        recebido_por_entidades:
+          type: object
+          description: Pagamentos a favorecidos sediados na cidade, de qualquer emenda (ADR-0010)
+          required: [quantidade_entidades, valor]
+          properties:
+            quantidade_entidades: { type: integer }
+            valor: { $ref: "#/components/schemas/ValorComProveniencia" }
+            entidades:
+              type: array
+              items: { $ref: "#/components/schemas/FavorecidoResumo" }
+        descartes: { $ref: "#/components/schemas/ContagemDescartes" }
+        proveniencia: { $ref: "#/components/schemas/Proveniencia" }
+
+    ContagemDescartes:
+      type: object
+      required: [total, por_motivo]
+      properties:
+        total: { type: integer }
+        por_motivo:
+          type: object
+          additionalProperties: { type: integer }
+
+    EmendaResumo:
+      type: object
+      required: [codigo, ano, autor_nome, localidade_texto, funcao_nome, fase, empenhado_centavos, pago_total_centavos]
+      properties:
+        codigo: { type: string }
+        ano: { type: integer }
+        autor_codigo: { type: string }
+        autor_nome: { type: string }
+        municipio_ibge: { type: [string, "null"] }
+        localidade_texto: { type: string }
+        funcao_nome: { type: string }
+        fase: { $ref: "#/components/schemas/FaseTraduzida" }
+        empenhado_centavos: { type: integer }
+        pago_total_centavos: { type: integer }
+
+    EmendaDetalhe:
+      type: object
+      required: [codigo, ano, tipo, autor, localidade_texto, funcao_nome, fase, valores]
+      properties:
+        codigo: { type: string }
+        ano: { type: integer }
+        tipo: { type: string }
+        autor:
+          type: object
+          required: [codigo, nome, tipo]
+          properties:
+            codigo: { type: string }
+            nome: { type: string }
+            tipo: { type: string, enum: [parlamentar, bancada, comissao, relator, sem_autor] }
+        municipio: { oneOf: [{ $ref: "#/components/schemas/MunicipioResumo" }, { type: "null" }] }
+        localidade_texto: { type: string }
+        funcao_nome: { type: string }
+        fase: { $ref: "#/components/schemas/FaseTraduzida" }
+        valores:
+          type: object
+          required: [empenhado, liquidado, pago, rp_inscrito, rp_cancelado, rp_pago]
+          properties:
+            empenhado: { $ref: "#/components/schemas/ValorComProveniencia" }
+            liquidado: { $ref: "#/components/schemas/ValorComProveniencia" }
+            pago: { $ref: "#/components/schemas/ValorComProveniencia" }
+            rp_inscrito: { $ref: "#/components/schemas/ValorComProveniencia" }
+            rp_cancelado: { $ref: "#/components/schemas/ValorComProveniencia" }
+            rp_pago: { $ref: "#/components/schemas/ValorComProveniencia" }
+        soma_recebida_favorecidos_centavos: { type: integer }
+
+    PagamentosEmenda:
+      type: object
+      required: [emenda_codigo, pagamentos, soma_centavos, descartes]
+      properties:
+        emenda_codigo: { type: string }
+        pagamentos:
+          type: array
+          items:
+            type: object
+            required: [cnpj, razao_social, ano_mes, valor]
+            properties:
+              cnpj: { type: string }
+              cnpj_raiz: { type: string }
+              razao_social: { type: string }
+              natureza: { type: [string, "null"] }
+              ano_mes: { type: string }
+              valor: { $ref: "#/components/schemas/ValorComProveniencia" }
+        soma_centavos: { type: integer }
+        descartes: { $ref: "#/components/schemas/ContagemDescartes" }
+
+    FavorecidoResumo:
+      type: object
+      required: [cnpj, razao_social]
+      properties:
+        cnpj: { type: string }
+        razao_social: { type: string }
+        natureza: { type: [string, "null"] }
+        municipio_nome: { type: [string, "null"] }
+
+    FavorecidoDetalhe:
+      type: object
+      required: [cnpj, cnpj_raiz, razao_social, nomes, filiais, recebido, sugestoes, proveniencia]
+      properties:
+        cnpj: { type: string }
+        cnpj_raiz: { type: string }
+        razao_social: { type: string }
+        natureza: { type: [string, "null"] }
+        municipio: { oneOf: [{ $ref: "#/components/schemas/MunicipioResumo" }, { type: "null" }] }
+        nomes:
+          type: array
+          description: Grafias vistas para este CNPJ (REQ-22)
+          items: { type: string }
+        filiais:
+          type: array
+          description: Outros CNPJs da mesma raiz; totais separados (REQ-27)
+          items: { $ref: "#/components/schemas/FavorecidoResumo" }
+        recebido:
+          type: object
+          required: [total, por_emenda]
+          properties:
+            total: { $ref: "#/components/schemas/ValorComProveniencia" }
+            por_emenda:
+              type: array
+              items:
+                type: object
+                required: [emenda_codigo, autor_nome, valor_centavos]
+                properties:
+                  emenda_codigo: { type: [string, "null"] }
+                  autor_nome: { type: string }
+                  valor_centavos: { type: integer }
+        sugestoes:
+          type: array
+          description: Pendentes e relacionadas; distintas nunca (REQ-39)
+          items: { $ref: "#/components/schemas/Sugestao" }
+        proveniencia: { $ref: "#/components/schemas/Proveniencia" }
+
+    Sugestao:
+      type: object
+      required: [id, outro, status, confianca, origem]
+      properties:
+        id: { type: integer }
+        outro: { $ref: "#/components/schemas/FavorecidoResumo" }
+        status: { type: string, enum: [pendente, relacionadas] }
+        confianca: { type: number, minimum: 0, maximum: 1 }
+        origem: { type: string, enum: [regra_nome, modelo_local] }
+
+    Grupo:
+      type: object
+      required: [chave, nome, quantidade_emendas, empenhado_centavos, liquidado_centavos, pago_total_centavos]
+      properties:
+        chave: { type: string }
+        nome: { type: string }
+        quantidade_emendas: { type: integer }
+        empenhado_centavos: { type: integer }
+        liquidado_centavos: { type: integer }
+        pago_total_centavos: { type: integer }
+
+    AutorDetalhe:
+      type: object
+      required: [codigo, nome, tipo, somas, emendas, proveniencia]
+      properties:
+        codigo: { type: string }
+        nome: { type: string }
+        tipo: { type: string }
+        somas: { $ref: "#/components/schemas/Grupo" }
+        emendas:
+          type: array
+          items: { $ref: "#/components/schemas/EmendaResumo" }
+        proveniencia: { $ref: "#/components/schemas/Proveniencia" }
+
+    Importacao:
+      type: object
+      required: [id, status, iniciada_em, vigente]
+      properties:
+        id: { type: integer }
+        status: { type: string, enum: [em_andamento, publicada, falhou] }
+        vigente: { type: boolean }
+        iniciada_em: { type: string, format: date-time }
+        publicada_em: { type: [string, "null"], format: date-time }
+        motivo_falha:
+          type: [string, "null"]
+          enum: [formato_alterado, descartes_acima_do_limite, interrompida, tempo_esgotado, fonte_indisponivel, null]
+        sha256: { type: [string, "null"] }
+        fonte_last_modified: { type: [string, "null"], format: date-time }
+        linhas_lidas: { type: integer }
+        linhas_no_recorte: { type: integer }
+        linhas_aceitas: { type: integer }
+        linhas_descartadas: { type: integer }
+        descartes: { $ref: "#/components/schemas/ContagemDescartes" }
+        workers: { type: integer }
+        duracao_ms:
+          type: object
+          additionalProperties: { type: integer }
+
+    ImportacaoDetalhe:
+      allOf:
+        - $ref: "#/components/schemas/Importacao"
+        - type: object
+          required: [descartes_por_municipio]
+          properties:
+            descartes_por_municipio:
+              type: array
+              items:
+                type: object
+                required: [municipio_nome, total]
+                properties:
+                  municipio_ibge: { type: [string, "null"] }
+                  municipio_nome: { type: string, description: "\"Sem município\" quando nulo" }
+                  total: { type: integer }
+
+    Traducao:
+      type: object
+      required: [versao, vigente, carregada_em, fases, versoes]
+      properties:
+        versao: { type: integer }
+        vigente: { type: boolean }
+        carregada_em: { type: string, format: date-time }
+        fases:
+          type: array
+          items:
+            type: object
+            required: [fase, texto_simples, termo_oficial, explicacao, fonte_definicao]
+            properties:
+              fase: { $ref: "#/components/schemas/Fase" }
+              texto_simples: { type: string }
+              termo_oficial: { type: string }
+              explicacao: { type: string }
+              fonte_definicao: { type: string }
+        versoes:
+          type: array
+          items: { type: integer }
+
+    Filtro:
+      type: object
+      additionalProperties: false
+      required: [tipo, valor]
+      properties:
+        tipo: { type: string, enum: [municipio, parlamentar] }
+        valor: { type: string, maxLength: 20 }
+
+    Assinatura:
+      type: object
+      required: [id, filtro, filtro_nome, status, criada_em]
+      properties:
+        id: { type: integer }
+        filtro: { $ref: "#/components/schemas/Filtro" }
+        filtro_nome: { type: string }
+        status: { type: string, enum: [pendente, ativa] }
+        criada_em: { type: string, format: date-time }
+        ultimo_alerta_em: { type: [string, "null"], format: date-time }

@@ -1,0 +1,30 @@
+## P10 · Como traduzimos as fases
+
+- **Superfície · ator:** Interface web · Morador e jornalista; também operador.
+- **Objetivo:** Mostrar a tabela de tradução vigente, com a regra de cada fase, o termo oficial e a fonte da definição, e as versões anteriores.
+- **Chega de / vai para:**
+  - Chega de: marca "tradução v`n`" (P02, P04), rodapé, P09.
+  - Vai para: P03 (emendas numa fase), P09 ("Origem dos dados").
+- **Mostra:**
+  - Para cada fase de `Traducao.fases[]`: `texto_simples`, `termo_oficial`, `explicacao`, a condição da regra (do ADR-0005, em texto) e `fonte_definicao` como link.
+  - `versao`, `carregada_em` e seletor de `versoes[]`.
+  - Nota fixa: "A fase descreve o caminho do dinheiro, não a obra."
+- **Coleta:** `versao` · inteiro ≥ 1 · opcional; sem ele, a versão vigente (parâmetro de `listar_traducoes`, na URL).
+- **Ações:**
+  - Escolher outra versão → (`listar_traducoes`) com `?versao=`.
+  - "Ver emendas nesta fase" → P03 (`listar_emendas`) com `?fase=`.
+  - "Origem dos dados" → P09 (`listar_importacoes`).
+  - Link da fonte da definição → nova aba → ação local · sem chamada à API (REQ-81).
+- **Estados:**
+  - **carregando:** esqueleto da tabela (REQ-76).
+  - **vazio:** não se aplica: a tradução vigente sempre existe, porque uma versão incompleta é recusada (REQ-33).
+  - **erro:** versão inexistente → 404 "Versão não encontrada" e volta à vigente (REQ-32); 5xx → `request_id` (REQ-78).
+  - **sucesso:** tabela da versão (REQ-31).
+  - **offline:** "Sem conexão" (REQ-79).
+  - **sem permissão:** tela pública (REQ-58).
+- **Regras:**
+  - Versões antigas aparecem como estavam (REQ-32).
+  - A regra exibida é a mesma da função `fase()` (REQ-30).
+- **Requisitos · contrato:** REQ-30, REQ-31, REQ-32, REQ-33, REQ-58, REQ-76, REQ-78, REQ-79, REQ-81 · `GET /fases` (`listar_traducoes`).
+- **Acessibilidade:** tabela com cabeçalhos de linha (`<th scope="row">`) por fase; seletor de versão com rótulo visível.
+- **Anexo:** sem mock; tela especificada por descrição detalhada.

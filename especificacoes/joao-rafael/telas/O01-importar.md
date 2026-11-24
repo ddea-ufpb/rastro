@@ -1,0 +1,36 @@
+## O01 · Importar e publicar
+
+- **Superfície · ator:** CLI (terminal) · Operador de dados.
+- **Objetivo:** Importar o zip da CGU e publicá-lo numa transação, ou explicar por que não publicou.
+- **Chega de / vai para:**
+  - Chega de: agendador diário ou o operador no terminal.
+  - Vai para: P09 (resultado aparece na lista de importações), O02 (quando há sugestões novas), S03 (alertas enfileirados).
+- **Mostra:**
+  - Progresso por etapa: download, validação, leitura (com o número de workers), normalização, publicação.
+  - Resultado: `Importacao.id`, `fonte_last_modified`, `arquivo_bruto`, `sha256` abreviado, `linhas_lidas`, `linhas_no_recorte`, `linhas_aceitas`, `linhas_descartadas`, descartes por motivo, mudanças de fase, sugestões novas, alertas na fila, `duracao_ms` por etapa.
+  - Rótulo final `OK`, `AVISO` (fonte sem alteração, arquivo já importado) ou `ERRO` com `motivo_falha`.
+- **Coleta:** argumentos de `cli:importar`:
+  - `--arquivo` · caminho de um `.zip` · obrigatório se não houver `--baixar`;
+  - `--baixar` · opção sem valor · obrigatório se não houver `--arquivo`;
+  - `--workers` · inteiro 1, 2 ou 4 · opcional (padrão 1);
+  - `--json` · opção sem valor · opcional.
+- **Ações:**
+  - `rastro importar --baixar` → (`cli:importar`).
+  - `rastro importar --arquivo <zip>` → (`cli:importar`).
+  - Ctrl-C → cancela; a importação fica `falhou`/`interrompida` e a vigente não muda (`cli:importar`).
+  - `rastro importacoes` → (`cli:importacoes`).
+- **Estados:**
+  - **carregando:** linha de progresso por etapa, sem animação quando a saída não é terminal (REQ-85).
+  - **vazio:** fonte respondeu 304 → `AVISO fonte sem alteração desde dd/mm/aaaa`, código 0 (REQ-03); arquivo repetido → `AVISO arquivo já importado (importação #n)` (REQ-05).
+  - **erro:** `ERRO formato_alterado` (REQ-07), `ERRO descartes_acima_do_limite` com os três motivos que mais pesaram (REQ-08), `ERRO fonte_indisponivel` (REQ-15), `ERRO tempo_esgotado` (REQ-12), sempre com "a importação #n continua vigente".
+  - **sucesso:** `OK Importação #n publicada` e o resumo (REQ-09, REQ-34, REQ-36).
+  - **offline:** sem rede com `--baixar` → `ERRO fonte_indisponivel`; `--arquivo` funciona sem rede (REQ-15, REQ-02).
+  - **sem permissão:** outra importação em andamento → `ERRO outra importação em andamento (#n)`, código 5; importação órfã é marcada `interrompida` antes (REQ-11).
+- **Regras:**
+  - Publica tudo ou nada (REQ-09, ADR-0002).
+  - Descartes por pessoa física nunca imprimem nome nem CPF (REQ-16, REQ-17).
+  - O número de workers vai para o registro da importação (REQ-86).
+  - Recorte da PB (REQ-04); leitura concorrente com escritor único (REQ-14).
+- **Requisitos · contrato:** REQ-01, REQ-02, REQ-03, REQ-04, REQ-05, REQ-07, REQ-08, REQ-09, REQ-11, REQ-12, REQ-14, REQ-15, REQ-16, REQ-17, REQ-18, REQ-19, REQ-20, REQ-34, REQ-36, REQ-85, REQ-86 · `cli:importar`, `cli:importacoes` (`contratos/cli.md`).
+- **Acessibilidade:** rótulos `OK`/`AVISO`/`ERRO` em texto; `NO_COLOR` e `--sem-cor`; `--json` para leitor de tela e automação; nenhuma linha passa de 80 colunas.
+- **Anexo:** sem mock; a saída de exemplo está em `../arquitetura/contratos/cli.md`.

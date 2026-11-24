@@ -1,0 +1,33 @@
+## S02 · Confirmar e gerenciar a assinatura
+
+- **Superfície · ator:** Interface web · Quem assinou (gestor, morador, jornalista).
+- **Objetivo:** Confirmar a assinatura pelo link do e-mail e, depois, ver e cancelar as assinaturas do e-mail.
+- **Chega de / vai para:**
+  - Chega de: link do `email:confirmacao` (`/alertas/confirmar#t=…`), link "Gerenciar ou cancelar" de S03 (`/alertas/minha#t=…`).
+  - Vai para: P02 ou P08 (filtro de uma assinatura), S01 ("Nova assinatura"), P01 (depois de cancelar).
+- **Mostra:**
+  - Ao confirmar: "Alerta confirmado para `Assinatura.filtro_nome`."
+  - Gestão: `email_mascarado`; lista de `assinaturas[]` com `filtro_nome`, `status`, `criada_em`, `ultimo_alerta_em`.
+  - Botão "Cancelar tudo e apagar meu e-mail", com confirmação: "Isto apaga o e-mail e todas as assinaturas. Não pode ser desfeito."
+- **Coleta:** nenhum campo digitado. `token` · texto de 43 caracteres · obrigatório, lido do fragmento da URL (enviado no corpo de `confirmar_assinatura` ou no cabeçalho `X-Token-Assinatura`).
+- **Ações:**
+  - Abrir pelo link de confirmação → (`confirmar_assinatura`); o `token_gestao` recebido vai para o fragmento da URL com `history.replaceState`.
+  - Abrir pelo link de gestão → (`obter_assinatura`).
+  - "Cancelar tudo e apagar meu e-mail" → (`excluir_assinatura`) e, no sucesso, → P01 (`obter_status`).
+  - Filtro de uma assinatura → P02 (`obter_municipio`) ou P08 (`obter_parlamentar`).
+  - "Nova assinatura" → S01 (`listar_municipios`).
+  - "Copiar link de gestão" → ação local · sem chamada à API (REQ-81).
+- **Estados:**
+  - **carregando:** "Conferindo o link…" (REQ-76).
+  - **vazio:** não se aplica: um token válido tem ao menos uma assinatura; sem token no fragmento → "Abra o link que chegou no seu e-mail." (REQ-72).
+  - **erro:** 410 → "Este link expirou ou já foi usado. Peça um novo alerta." com link para S01 (REQ-63); 5xx → `request_id` (REQ-78).
+  - **sucesso:** confirmação ou lista (REQ-64); depois de cancelar, "Pronto. Seu e-mail foi apagado." (REQ-70).
+  - **offline:** "Sem conexão" (REQ-79).
+  - **sem permissão:** o token é a permissão; token inválido cai no estado de erro 410 (REQ-63).
+- **Regras:**
+  - O token nunca vai para a query string nem para o `Referer` (REQ-72).
+  - O e-mail aparece mascarado (`j***@g***.com`).
+  - Cancelar apaga de verdade, sem "conta desativada" (REQ-70).
+- **Requisitos · contrato:** REQ-63, REQ-64, REQ-70, REQ-72, REQ-76, REQ-78, REQ-79, REQ-81 · `POST /assinaturas/confirmar` (`confirmar_assinatura`), `GET /assinaturas/minha` (`obter_assinatura`), `DELETE /assinaturas/minha` (`excluir_assinatura`).
+- **Acessibilidade:** o diálogo de confirmação do cancelamento prende o foco e devolve ao botão; o resultado é anunciado em `role="status"`.
+- **Anexo:** sem mock; tela especificada por descrição detalhada.
