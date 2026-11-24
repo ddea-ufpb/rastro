@@ -1,0 +1,36 @@
+## P01 · Início e busca
+
+- **Superfície · ator:** Interface web · Morador; também jornalista e gestor municipal.
+- **Objetivo:** Levar o visitante, em um passo, à cidade, à emenda ou à entidade que ele procura.
+- **Chega de / vai para:**
+  - Chega de: link externo, marca do cabeçalho (todas as telas web), S02 (depois de cancelar).
+  - Vai para: P02 (cidade), P04 (código da emenda), P06 (CNPJ ou entidade), P03 ("Ver todas as emendas"), P09 (faixa de proveniência), S01 ("Receber alertas").
+- **Mostra:**
+  - Título "Para onde foi o dinheiro das emendas na Paraíba" e uma frase sobre o que o Rastro faz.
+  - Campo de busca grande "Digite sua cidade, o código da emenda ou o CNPJ".
+  - Ao digitar 2+ letras: lista de `MunicipioResumo.nome` (de `listar_municipios`) e, com 3+ letras, lista de `FavorecidoResumo.razao_social` com `municipio_nome` (de `listar_favorecidos`), em grupos "Cidades" e "Entidades que receberam".
+  - Bloco "Dados de hoje": `Status.importacao_vigente.fonte_last_modified`, `publicada_em` e o número da importação.
+  - Três atalhos: "Ver todas as emendas", "Comparar parlamentares, cidades e funções", "Receber alertas por e-mail".
+- **Coleta:** `q` · texto, 2 a 80 caracteres · opcional (vira o parâmetro `q` de `listar_municipios` e `listar_favorecidos`; 12 ou 14 dígitos viram `codigo` ou `cnpj`).
+- **Ações:**
+  - Digitar → (`listar_municipios`) e (`listar_favorecidos`), com espera de 250 ms entre teclas.
+  - Escolher uma cidade → P02 (`obter_municipio`).
+  - Escolher uma entidade → P06 (`obter_favorecido`).
+  - Enter com 12 dígitos → P04 (`obter_emenda`); com 14 dígitos → P06 (`obter_favorecido`).
+  - "Ver todas as emendas" → P03 (`listar_emendas`).
+  - "Receber alertas por e-mail" → S01 (`listar_municipios`).
+  - Faixa "Ver origem" → P09 (`listar_importacoes`).
+- **Estados:**
+  - **carregando:** esqueleto do bloco "Dados de hoje"; a busca já funciona (REQ-76).
+  - **vazio:** busca sem resultado → "Nenhuma cidade da Paraíba ou entidade com esse nome. O Rastro cobre só a Paraíba." (REQ-77, REQ-41).
+  - **erro:** 5xx em `obter_status` ou na busca → mensagem com `request_id` e "Tentar de novo" (REQ-78).
+  - **sucesso:** bloco de dados e busca ativos (REQ-60).
+  - **offline:** "Sem conexão"; a busca fica desabilitada (REQ-79).
+  - **sem permissão:** tela pública; limite por IP na busca → "Muitas consultas seguidas. Tente de novo em N s." (REQ-58).
+  - **sem importação publicada:** 503 → "Os dados ainda não foram importados." e busca desabilitada (REQ-56).
+- **Regras:**
+  - A lista de entidades nunca mostra valor recebido: a busca acha, não compara (REQ-52).
+  - Cidades em ordem alfabética; entidades em ordem alfabética (REQ-50).
+- **Requisitos · contrato:** REQ-40, REQ-50, REQ-56, REQ-58, REQ-60, REQ-75, REQ-76, REQ-77, REQ-78, REQ-79 · `GET /status` (`obter_status`), `GET /municipios` (`listar_municipios`), `GET /favorecidos` (`listar_favorecidos`).
+- **Acessibilidade:** busca como `combobox` com `aria-expanded` e lista `listbox` agrupada; resultados anunciados ("3 cidades, 2 entidades") por `aria-live`; Enter e setas funcionam sem mouse.
+- **Anexo:** sem mock; tela especificada por descrição detalhada.

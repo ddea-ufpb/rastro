@@ -1,0 +1,43 @@
+## P04 · Emenda
+
+- **Superfície · ator:** Interface web · Morador, jornalista e gestor municipal.
+- **Objetivo:** Mostrar em que fase está uma emenda, com o valor de cada etapa e a linha do arquivo de onde cada valor saiu.
+- **Chega de / vai para:**
+  - Chega de: P01 (código), P02, P03, P05, P06, P08, S03 (link do e-mail), link externo.
+  - Vai para: P05 ("Quem recebeu"), P08 (autor), P02 (município de destino), P10 (marca da tradução), P09 (origem de um valor), P03 ("Buscar emendas", no estado não encontrada), S01 ("Receber alertas").
+- **Mostra:**
+  - Cabeçalho: `EmendaDetalhe.codigo` (copiar), `ano`, `tipo`, `autor.nome` (link para P08).
+  - Fase em destaque: `fase.texto_simples`, `fase.termo_oficial` entre parênteses e "tradução v`fase.traducao_versao`".
+  - Destino: `localidade_texto` como a fonte escreve e, quando houver, `municipio.nome` com link para P02; nota "Local de aplicação segundo a CGU".
+  - Função: `funcao_nome`.
+  - Recibo "Caminho do dinheiro", na ordem do ciclo: `valores.empenhado`, `valores.liquidado`, `valores.pago`, `valores.rp_inscrito`, `valores.rp_cancelado`, `valores.rp_pago`, cada um com definição de uma linha e o carimbo "Origem" (`Proveniencia.arquivo`, `linha`, `extraido_em`, `importacao_id`, `url_download`).
+  - Recibo separado "Recebido por entidades": `soma_recebida_favorecidos_centavos` com link para P05.
+  - Aviso do REQ-83.
+- **Coleta:** nenhum campo digitado. `codigo` · texto de 12 dígitos · obrigatório, vem da rota.
+- **Ações:**
+  - "Copiar código" → ação local · sem chamada à API (REQ-81).
+  - "Origem" em um valor → painel com a proveniência já recebida → ação local · sem chamada à API (REQ-81); "Ver importação" → P09 (`obter_importacao`).
+  - "Abrir na fonte" → `url_download` em nova aba → ação local · sem chamada à API (REQ-81).
+  - "Quem recebeu" → P05 (`listar_pagamentos_emenda`).
+  - Autor → P08 (`obter_parlamentar`).
+  - Município → P02 (`obter_municipio`).
+  - "tradução v`n`" → P10 (`listar_traducoes`).
+  - "Receber alertas desta cidade" ou "deste parlamentar" → S01 (`listar_municipios`) com o filtro preenchido.
+  - "Buscar emendas" (estado 404) → P03 (`listar_emendas`).
+- **Estados:**
+  - **carregando:** esqueleto do cabeçalho e do recibo (REQ-76).
+  - **vazio:** fase `sem_empenho` → todos os valores zerados aparecem com "Nada reservado até dd/mm/aaaa", nunca recibo em branco (REQ-77, ADR-0005).
+  - **erro:** 404 → "Não achamos a emenda `codigo` na importação de dd/mm/aaaa" com "Buscar emendas" (REQ-46); 422 → "O código tem 12 dígitos" (REQ-44); 5xx → `request_id` (REQ-78).
+  - **sucesso:** os dois recibos (REQ-45).
+  - **offline:** "Sem conexão" (REQ-79).
+  - **sem permissão:** tela pública; limite por IP (REQ-58).
+  - **sem importação publicada:** 503 (REQ-56).
+- **Regras:**
+  - Etapas em linhas separadas, sem "Total" (princípio 2 das diretrizes).
+  - Texto fixo "Pagamento registrado não comprova que a obra ou o serviço foi entregue." no recibo (REQ-83).
+  - Fase vem pronta da API (REQ-30, REQ-31).
+  - Todo valor tem "Origem" (REQ-29).
+  - Nenhuma palavra do REQ-82.
+- **Requisitos · contrato:** REQ-29, REQ-30, REQ-31, REQ-44, REQ-45, REQ-46, REQ-56, REQ-58, REQ-75, REQ-76, REQ-77, REQ-78, REQ-79, REQ-81, REQ-82, REQ-83 · `GET /emendas/{codigo}` (`obter_emenda`).
+- **Acessibilidade:** etapas numa lista ordenada (`<ol>`), porque a ordem é informação; painel "Origem" em `<details>`; link externo anuncia "abre em nova aba".
+- **Anexo:** sem mock; tela especificada por descrição detalhada.

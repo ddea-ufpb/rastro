@@ -1,0 +1,33 @@
+## P09 · Origem dos dados (importações e descartes)
+
+- **Superfície · ator:** Interface web · Jornalista e operador; também morador.
+- **Objetivo:** Mostrar de onde vêm os dados, quando foram importados, o que cada importação descartou e por quê.
+- **Chega de / vai para:**
+  - Chega de: faixa de proveniência (todas as telas web), P01, P02 ("O que não entrou"), P03, P04, P05, P06, P07 ("Origem"), P10, O01 (resultado impresso).
+  - Vai para: P10 ("Como traduzimos as fases"), P02 (linha de descarte por município).
+- **Mostra:**
+  - Bloco "Fonte": Portal da Transparência (CGU), link de download, licença, `Status.importacao_vigente.fonte_last_modified`.
+  - Lista de importações: `Importacao.id`, `status`, `vigente`, `iniciada_em`, `publicada_em`, `motivo_falha` em frase, `linhas_no_recorte`, `linhas_aceitas`, `linhas_descartadas`, `duracao_ms` por etapa.
+  - Ao abrir uma importação: `descartes.por_motivo` em frases e `ImportacaoDetalhe.descartes_por_municipio[]` (`municipio_nome`, `total`), em ordem alfabética, com "Sem município" ao fim.
+  - Texto curto sobre o que entra e o que não entra (recorte, pessoa física, sem CNPJ).
+- **Coleta:** `id` (da importação) · inteiro ≥ 1 · opcional (vira o caminho de `obter_importacao`, espelhado em `?importacao=`).
+- **Ações:**
+  - Abrir uma importação → (`obter_importacao`).
+  - Linha de município nos descartes → P02 (`obter_municipio`).
+  - "Como traduzimos as fases" → P10 (`listar_traducoes`).
+  - "Baixar o arquivo oficial" → link externo → ação local · sem chamada à API (REQ-81).
+- **Estados:**
+  - **carregando:** esqueleto da lista (REQ-76).
+  - **vazio:** nenhuma importação → "Ainda não houve importação." (REQ-77).
+  - **erro:** importação inexistente → 404 "Importação não encontrada" (REQ-55); 5xx → `request_id` (REQ-78).
+  - **sucesso:** lista e detalhe (REQ-54, REQ-55).
+  - **offline:** "Sem conexão" (REQ-79).
+  - **sem permissão:** tela pública; nenhuma limitação além do limite por IP (REQ-58).
+  - **importação que falhou:** linha com `motivo_falha` em frase ("O formato do arquivo mudou; a importação anterior continua no ar") (REQ-07, REQ-08, REQ-11, REQ-15).
+- **Regras:**
+  - Descartes nunca mostram nome, CPF ou valor de pessoa (REQ-26, ADR-0004).
+  - Importação que falhou aparece na lista; nunca é escondida (REQ-54).
+  - Toda linha de dado da vigente tem arquivo e linha de origem (REQ-28).
+- **Requisitos · contrato:** REQ-07, REQ-08, REQ-11, REQ-15, REQ-26, REQ-28, REQ-54, REQ-55, REQ-58, REQ-60, REQ-76, REQ-77, REQ-78, REQ-79, REQ-81, REQ-85 · `GET /importacoes` (`listar_importacoes`), `GET /importacoes/{id}` (`obter_importacao`), `GET /status` (`obter_status`).
+- **Acessibilidade:** a lista é uma tabela; o detalhe abre num `<details>` por linha, com foco no título ao abrir; status escrito ("publicada", "falhou"), nunca só ícone.
+- **Anexo:** sem mock; tela especificada por descrição detalhada.

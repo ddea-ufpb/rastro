@@ -1,0 +1,39 @@
+## P03 · Emendas: busca e filtros
+
+- **Superfície · ator:** Interface web · Jornalista e gestor municipal; também morador.
+- **Objetivo:** Listar as emendas que atendem a um recorte de município, autor, função, ano e fase, com URL que reproduz a consulta.
+- **Chega de / vai para:**
+  - Chega de: P01, P02, P04 ("Buscar emendas"), P07 (linha de função), P08 ("Ver todas"), P10 (emendas numa fase), cabeçalho.
+  - Vai para: P04 (uma emenda), P02 (município de uma linha), P09 (faixa de proveniência).
+- **Mostra:**
+  - Filtros: município (`MunicipioResumo.nome`), autor, função, ano, fase (`Fase`, com o `texto_simples`).
+  - Tabela: `EmendaResumo.codigo`, `ano`, `autor_nome`, `localidade_texto`, `funcao_nome`, `fase.texto_simples` + `fase.termo_oficial`, `empenhado_centavos`, `pago_total_centavos`.
+  - Contador "N emendas" e "Carregar mais" pelo `proximo_cursor`.
+  - Aviso do REQ-83 acima da tabela.
+- **Coleta:** parâmetros de `listar_emendas`, espelhados na URL, todos opcionais:
+  - `municipio_ibge` · texto de 7 dígitos começando por 25 · opcional;
+  - `autor_codigo` · texto até 20 caracteres · opcional;
+  - `funcao_codigo` · texto de 1 a 2 dígitos · opcional;
+  - `ano` · inteiro de 2014 em diante · opcional;
+  - `fase` · enum `Fase` · opcional.
+- **Ações:**
+  - Mudar um filtro → (`listar_emendas`), atualizando a URL.
+  - "Carregar mais" → (`listar_emendas`) com `cursor`.
+  - Uma linha → P04 (`obter_emenda`).
+  - Município de uma linha → P02 (`obter_municipio`).
+  - "Exportar CSV" → arquivo com as linhas já carregadas, as colunas de proveniência e o aviso → ação local · sem chamada à API (REQ-81).
+  - "Copiar link desta consulta" → ação local · sem chamada à API (REQ-81).
+- **Estados:**
+  - **carregando:** esqueleto de 10 linhas (REQ-76).
+  - **vazio:** "Nenhuma emenda com esses filtros na importação de dd/mm/aaaa." e o botão "Limpar filtros" (REQ-77).
+  - **erro:** 422 → a mensagem junto do filtro indicado em `campo` (REQ-44); 5xx → `request_id` e "Tentar de novo" (REQ-78).
+  - **sucesso:** tabela e contador (REQ-43).
+  - **offline:** "Sem conexão" (REQ-79).
+  - **sem permissão:** tela pública; limite por IP (REQ-58).
+  - **sem importação publicada:** 503 (REQ-56).
+- **Regras:**
+  - Ordem padrão: ano decrescente, depois código. Não existe ordenação por valor de autor (REQ-52).
+  - Fase sempre com os dois termos (REQ-31).
+- **Requisitos · contrato:** REQ-31, REQ-43, REQ-44, REQ-52, REQ-56, REQ-58, REQ-75, REQ-76, REQ-77, REQ-78, REQ-79, REQ-81, REQ-84 · `GET /emendas` (`listar_emendas`).
+- **Acessibilidade:** tabela com `<caption>` que descreve os filtros ativos; o número de resultados é anunciado por `aria-live` quando um filtro muda; filtros num `<form>` com rótulos visíveis.
+- **Anexo:** sem mock; tela especificada por descrição detalhada.

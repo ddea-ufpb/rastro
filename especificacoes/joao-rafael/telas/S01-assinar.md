@@ -1,0 +1,33 @@
+## S01 · Receber alertas por e-mail
+
+- **Superfície · ator:** Interface web · Gestor municipal e morador; também jornalista.
+- **Objetivo:** Pedir um alerta por e-mail para um município ou um parlamentar, sem conta e sem outro dado pessoal.
+- **Chega de / vai para:**
+  - Chega de: cabeçalho ("Receber alertas"), P01, P02, P04, P08, S02 ("Nova assinatura").
+  - Vai para: P02 ou P08 ("Voltar", conforme o filtro).
+- **Mostra:**
+  - Explicação: "Você recebe um e-mail quando a fase de uma emenda mudar entre uma importação e a seguinte. No máximo um e-mail por importação."
+  - Campo "Seu e-mail".
+  - Escolha "Acompanhar": município (lista de `MunicipioResumo.nome`) ou parlamentar (preenchido quando vem de P04 ou P08).
+  - Texto de privacidade: "Guardamos só o e-mail, e só para o alerta. Cancelar apaga o e-mail."
+- **Coleta:** corpo de `criar_assinatura`:
+  - `email` · e-mail, até 254 caracteres · obrigatório;
+  - `filtro.tipo` · enum `municipio`, `parlamentar` · obrigatório;
+  - `filtro.valor` · texto até 20 caracteres (código IBGE ou código do autor) · obrigatório.
+- **Ações:**
+  - Abrir a tela → (`listar_municipios`) para preencher a lista.
+  - "Pedir alerta" → (`criar_assinatura`) e, no sucesso, (`email:confirmacao`) é enviado pelo sistema.
+  - "Voltar" → P02 (`obter_municipio`) ou P08 (`obter_parlamentar`).
+- **Estados:**
+  - **carregando:** botão "Pedir alerta" desabilitado com "Enviando…" (REQ-76).
+  - **vazio:** formulário vazio com o campo de e-mail focado; não há lista para ficar vazia (REQ-62).
+  - **erro:** 422 → mensagem junto do campo ("Confira o e-mail") e resumo de erros no topo (REQ-62); 5xx → `request_id` (REQ-78).
+  - **sucesso:** 202 → "Se o e-mail estiver certo, você vai receber um link de confirmação em alguns minutos. Nada é enviado antes da confirmação." Mesma mensagem quando a assinatura já existe ou o limite por e-mail foi atingido (REQ-61, REQ-73, REQ-74).
+  - **offline:** "Sem conexão"; o botão fica desabilitado (REQ-79).
+  - **sem permissão:** pública; 429 por IP → "Muitas tentativas. Tente de novo em N s." (REQ-58).
+- **Regras:**
+  - Só e-mail e filtro; nenhum outro campo (REQ-62).
+  - A resposta não revela se o e-mail já assina (REQ-73).
+- **Requisitos · contrato:** REQ-58, REQ-61, REQ-62, REQ-73, REQ-74, REQ-76, REQ-78, REQ-79 · `POST /assinaturas` (`criar_assinatura`), `GET /municipios` (`listar_municipios`).
+- **Acessibilidade:** `autocomplete="email"` e `type="email"`; escolha de filtro como rádios com rótulos; mensagem de sucesso em `role="status"`.
+- **Anexo:** sem mock; tela especificada por descrição detalhada.

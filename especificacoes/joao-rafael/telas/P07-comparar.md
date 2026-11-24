@@ -1,0 +1,39 @@
+## P07 · Comparar por parlamentar, município ou função
+
+- **Superfície · ator:** Interface web · Jornalista e gestor municipal.
+- **Objetivo:** Mostrar as somas de cada etapa agrupadas por parlamentar, município ou função, em ordem alfabética, para enxergar padrão sem ranquear pessoas.
+- **Chega de / vai para:**
+  - Chega de: cabeçalho ("Comparar"), P01 (atalho), P08 ("Comparar com outros").
+  - Vai para: P08 (linha de parlamentar), P02 (linha de município), P03 (linha de função), P09 (faixa).
+- **Mostra:**
+  - Seletor "Agrupar por": parlamentar, município, função; seletor de ano.
+  - Tabela: `Grupo.nome`, `quantidade_emendas`, `empenhado_centavos`, `liquidado_centavos`, `pago_total_centavos`, em colunas separadas.
+  - Barras horizontais opcionais por coluna, ligadas à tabela, na ordem da tabela.
+  - Nota fixa: "Ordem alfabética. O Rastro não classifica parlamentares."
+  - Aviso do REQ-83.
+- **Coleta:** parâmetros de `obter_agregacoes`, na URL:
+  - `por` · enum `parlamentar`, `municipio`, `funcao` · obrigatório (padrão `parlamentar`);
+  - `ano` · inteiro de 2014 em diante · opcional.
+- **Ações:**
+  - Mudar "Agrupar por" ou o ano → (`obter_agregacoes`).
+  - Linha de parlamentar → P08 (`obter_parlamentar`).
+  - Linha de município → P02 (`obter_municipio`).
+  - Linha de função → P03 (`listar_emendas`) com `?funcao_codigo=`.
+  - "Exportar CSV" → ação local · sem chamada à API (REQ-81).
+  - "Mostrar barras" → ação local · sem chamada à API (REQ-81).
+- **Estados:**
+  - **carregando:** esqueleto da tabela (REQ-76).
+  - **vazio:** ano sem emendas → "Nenhuma emenda ligada à Paraíba em `ano`." (REQ-77).
+  - **erro:** 422 (por exemplo, ordenação pedida por URL manual) → "Esta tabela só tem ordem alfabética" (REQ-52); 5xx → `request_id` (REQ-78).
+  - **sucesso:** tabela (REQ-51).
+  - **offline:** "Sem conexão" (REQ-79).
+  - **sem permissão:** tela pública; limite por IP (REQ-58).
+  - **sem importação publicada:** 503 (REQ-56).
+- **Regras:**
+  - Cabeçalhos de coluna não são ordenáveis (REQ-52).
+  - Etapas em colunas separadas, nunca somadas (princípio 2).
+  - Somas por CNPJ nunca usam sugestão (REQ-37).
+  - Nenhuma palavra do REQ-82.
+- **Requisitos · contrato:** REQ-37, REQ-51, REQ-52, REQ-56, REQ-58, REQ-75, REQ-76, REQ-77, REQ-78, REQ-79, REQ-81, REQ-82, REQ-83, REQ-84 · `GET /agregacoes` (`obter_agregacoes`).
+- **Acessibilidade:** a tabela é a informação; as barras são decorativas para leitor de tela (`aria-hidden`) e repetem a tabela; seletor como grupo de rádios.
+- **Anexo:** sem mock; tela especificada por descrição detalhada.

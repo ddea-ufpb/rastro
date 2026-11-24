@@ -1,0 +1,37 @@
+## P06 · Entidade favorecida
+
+- **Superfície · ator:** Interface web · Jornalista; também gestor municipal.
+- **Objetivo:** Mostrar tudo o que um CNPJ recebeu das emendas ligadas à PB, com as grafias do nome, as filiais e as sugestões de mesma entidade, sem somar CNPJs diferentes.
+- **Chega de / vai para:**
+  - Chega de: P01 (busca por entidade ou CNPJ), P02 (lista de entidades da cidade), P05, P06 (filial ou sugestão), O02 (link impresso na CLI), link externo.
+  - Vai para: P04 (uma emenda), P02 (sede), P06 (filial ou sugestão), P09 (origem).
+- **Mostra:**
+  - Cabeçalho: `FavorecidoDetalhe.razao_social`, `cnpj` (copiar), `natureza`, `municipio.nome`.
+  - "Também aparece como": `nomes[]` (grafias vistas).
+  - Recibo "Recebido": `recebido.total` (com "Origem") e a tabela `recebido.por_emenda[]` (`emenda_codigo`, `autor_nome`, `valor_centavos`).
+  - "Mesma pessoa jurídica (filiais)": `filiais[]` com o próprio link, sem valor somado.
+  - "Nomes parecidos": `sugestoes[]` com `outro.razao_social`, `outro.cnpj`, o rótulo por `status` ("Sugestão automática, não revisada" ou "Revisada: entidades relacionadas") e `confianca`; nota fixa "CNPJs diferentes são contados separados".
+  - Aviso do REQ-83.
+- **Coleta:** nenhum campo digitado. `cnpj` · texto de 14 dígitos · obrigatório, vem da rota.
+- **Ações:**
+  - Uma emenda → P04 (`obter_emenda`).
+  - Sede → P02 (`obter_municipio`).
+  - Uma filial ou sugestão → P06 (`obter_favorecido`).
+  - "Origem" → painel local → ação local · sem chamada à API (REQ-81); "Ver importação" → P09 (`obter_importacao`).
+  - "Copiar CNPJ" → ação local · sem chamada à API (REQ-81).
+- **Estados:**
+  - **carregando:** esqueleto do cabeçalho e do recibo (REQ-76).
+  - **vazio:** entidade sem pagamentos na vigente → "Esta entidade não recebeu pagamentos de emendas na importação de dd/mm/aaaa" (REQ-77).
+  - **erro:** 422 → "O CNPJ tem 14 dígitos" (REQ-49); 404 → "Não achamos esse CNPJ entre quem recebeu de emendas ligadas à Paraíba" (REQ-49); 5xx → `request_id` (REQ-78).
+  - **sucesso:** todos os blocos (REQ-48).
+  - **offline:** "Sem conexão" (REQ-79).
+  - **sem permissão:** tela pública; limite por IP (REQ-58).
+  - **sem importação publicada:** 503 (REQ-56).
+- **Regras:**
+  - Um CNPJ, uma entidade; nome nunca é chave (REQ-21, ADR-0001).
+  - O total é só deste CNPJ; nem filial nem sugestão entram nele (REQ-27, REQ-37).
+  - Sugestões `distintas` nunca aparecem (REQ-39).
+  - A razão social exibida é a mais frequente na importação (REQ-22).
+- **Requisitos · contrato:** REQ-21, REQ-22, REQ-27, REQ-37, REQ-39, REQ-48, REQ-49, REQ-56, REQ-58, REQ-75, REQ-76, REQ-77, REQ-78, REQ-79, REQ-81, REQ-83 · `GET /favorecidos/{cnpj}` (`obter_favorecido`).
+- **Acessibilidade:** o rótulo da sugestão é texto lido junto com o nome; a confiança tem rótulo ("confiança 0,93 de 1"); CNPJ formatado com o valor só de dígitos no rótulo acessível.
+- **Anexo:** sem mock; tela especificada por descrição detalhada.

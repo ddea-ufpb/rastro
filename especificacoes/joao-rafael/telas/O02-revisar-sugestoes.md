@@ -1,0 +1,33 @@
+## O02 · Revisar sugestões de mesma entidade
+
+- **Superfície · ator:** CLI (terminal) · Operador de dados.
+- **Objetivo:** Decidir se dois CNPJs de nome parecido são entidades relacionadas ou distintas, sem mudar nenhum total.
+- **Chega de / vai para:**
+  - Chega de: O01 (aviso "N sugestões novas").
+  - Vai para: P06 (a saída imprime o link `/favorecidos/<cnpj>` de cada lado, para conferir).
+- **Mostra:**
+  - Por sugestão: `SugestaoMesmaEntidade.id`, `cnpj_a` e `cnpj_b` com `Favorecido.razao_social`, `natureza` e `Municipio.nome`, a `confianca`, a `origem` (`regra_nome` ou `modelo_local`) e o total recebido por cada CNPJ, em linhas separadas.
+  - Contagem de pendentes.
+- **Coleta:** argumentos de `cli:sugestoes`:
+  - `listar --status` · enum `pendente`, `relacionadas`, `distintas` · opcional (padrão `pendente`);
+  - `listar --municipio` · código IBGE de 7 dígitos · opcional;
+  - `revisar <id>` · inteiro ≥ 1 · obrigatório;
+  - `--decisao` · enum `relacionadas`, `distintas` · obrigatório em `revisar`;
+  - `--revisor` · texto até 60 caracteres · obrigatório em `revisar`;
+  - `--forcar` · opção sem valor · opcional.
+- **Ações:**
+  - `rastro sugestoes listar` → (`cli:sugestoes`).
+  - `rastro sugestoes revisar <id> --decisao … --revisor …` → (`cli:sugestoes`).
+- **Estados:**
+  - **carregando:** não se aplica: a listagem é instantânea; consultas acima de 1 s mostram "Consultando…" (REQ-38).
+  - **vazio:** `OK Nenhuma sugestão pendente.` (REQ-36).
+  - **erro:** id inexistente → `ERRO sugestão #n não existe`, código 2; já revisada → `AVISO já revisada como relacionadas em dd/mm; use --forcar`, código 2 (REQ-38).
+  - **sucesso:** `OK Sugestão #n: relacionadas (revisor, dd/mm/aaaa). Totais não mudam.` (REQ-38, REQ-39).
+  - **offline:** não depende de rede externa; sem banco → `ERRO banco indisponível`, código 1 (REQ-38).
+  - **sem permissão:** só quem roda a CLI com acesso ao banco revisa; `--revisor` é obrigatório (REQ-38).
+- **Regras:**
+  - Revisão muda o rótulo em P06, nunca uma soma (REQ-37, REQ-38).
+  - `distintas` some da interface (REQ-39).
+- **Requisitos · contrato:** REQ-36, REQ-37, REQ-38, REQ-39 · `cli:sugestoes` (`contratos/cli.md`).
+- **Acessibilidade:** saída em blocos rotulados, um por sugestão; `--json` disponível; sem cor obrigatória.
+- **Anexo:** sem mock; tela especificada por descrição detalhada.
