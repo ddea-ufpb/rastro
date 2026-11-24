@@ -11,7 +11,7 @@ do git da branch `trabalho2/etapa2-joao-vitor`.
 
 | Item | Valor |
 | :-- | :-- |
-| Máquina | Apple M4 (CPU de 10 núcleos, GPU integrada de 10 núcleos, sem GPU dedicada), 16 GB de RAM, macOS 27.0.1 |
+| Máquina | Apple M4 (CPU de 10 núcleos, GPU integrada de 10 núcleos, sem GPU dedicada), 16 GB de RAM, macOS 27.0.1  (o corpus da seção 5 rodou em parte num PC Windows; ver lá) |
 | Servidor de modelo | Ollama 0.33.3, local |
 | Modelo | `qwen3:1.7b` (tag fixa; `cliente.py` recusa `:latest` e nome sem tag) |
 | Parâmetros | `temperature: 0`, `seed: 42`, `think: false` (modo de raciocínio do qwen3 desligado), teto de 6 passos por item |
@@ -206,7 +206,27 @@ execuções da rodada 2.
 
 ## 5. Entrega ao projeto (B5)
 
-- `dados.jsonl`: o corpus inteiro (3 191 itens) enriquecido com a spec **pobre**, a de melhor acurácia medida. <!-- DADOS -->
+- `dados.jsonl`: o corpus inteiro (3 191 itens) enriquecido com a spec **pobre**, a de melhor acurácia medida. Números de `carregar.py`:
+
+  | | Itens | % |
+  | :-- | --: | --: |
+  | Resolvidos | 3 165 | 99,2% |
+  | Não resolvidos (teto de passos) | 26 | 0,8% |
+  | Conferidos (`conferida = 1`, `revisar = 0`) | 561 | 17,6% |
+  | Para revisão (`revisar = 1`) | 2 630 | 82,4% |
+
+  Por sentido, os conferidos foram 556 de 2 920 em `avanco`, 5 de 60 em `recuo`, 0 de 206 em `nova` e 0 de 5 em `removida`. Nenhuma frase de emenda nova passou: o modelo não diz que a emenda é nova do jeito que o avaliador reconhece. O `sentido` bate com a regra nos 3 191, porque sai da regra.
+
+  **O corpus rodou em duas máquinas**, para caber no prazo: os itens 1 a 1 800 no Mac da seção 0 (sequencial) e os itens 1 801 a 3 191 num PC Windows com GPU AMD RX 9070 XT (quatro processos em paralelo), com o mesmo modelo (`qwen3:1.7b`, ID `8f68893c685c`), a mesma spec, `seed` e teto de passos. As versões do Ollama e do driver no Windows não ficaram registradas. As duas partes **não se comportaram igual**:
+
+  | | Mac (1 800) | Windows (1 391) |
+  | :-- | --: | --: |
+  | Conferidos | 150 (8,3%) | 411 (29,5%) |
+  | Não resolvidos | 26 | 0 |
+  | Passos por item | 3,17 | 2,00 |
+  | Segundos por item | 10,4 | 11,7 |
+
+  Parte da diferença é a composição: os 462 itens que mexem em restos a pagar estão todos na parte do Mac, e o tipo mais comum deles (inscrito e pago, 425 itens) teve 0% conferidos. Mas a diferença aparece também dentro do mesmo tipo de mudança: só empenhado, 29,3% no Mac e 50,6% no Windows; só liquidado, 1,0% e 57,6%. No Windows, o modelo registrou a frase já na primeira chamada em um terço dos itens, o que no Mac quase não aconteceu (1 em 1 800). Ou seja, o mesmo modelo com temperatura 0 e semente fixa muda de comportamento conforme o servidor e o hardware. Isso reforça a regra de uso: cada frase é conferida na carga, e a origem dela não muda a conferência. A acurácia do gabarito (seção 4) foi medida só no Mac e vale para ele.
 - `ESQUEMA.md`: cada campo, tipo, obrigatoriedade e significado, com os nomes do modelo de dados do Trabalho 1. O grupo ainda não tem `CONTRATOS.md`.
 - `carregar.py`: lê `dados.jsonl` e grava num SQLite, em `LoteImportacao`, `MudancaLote` (como no Trabalho 1) e na tabela nova `ResumoMudanca`. Cada frase passa pela mesma conferência do avaliador mais a etapa; `conferida = 1` quando passa, e `revisar = 1` quando não passa ou tem confiança baixa. Rodar de novo não duplica nada e atualiza o resumo (`tests/test_carregar.py`).
 
