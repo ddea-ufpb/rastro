@@ -21,6 +21,7 @@ from pathlib import Path
 from agente import Ferramentas, enriquecer_item
 from cliente import ClienteOllama
 from sentido import sentido_por_regra
+from traduzir import traduzir_texto
 
 AQUI = Path(__file__).resolve().parent
 CORPUS = AQUI.parent / "coleta" / "corpus.jsonl"
@@ -50,7 +51,7 @@ def _refazer(l: dict) -> bool:
     return l["status"] != "resolvido" and l["motivo"].startswith("modelo indisponível")
 
 
-def _ler_saida(saida: Path, spec: str, modelo: str, max_passos: int, log) -> list[dict]:
+def _ler_saida(saida: Path, spec: str, modelo: str, max_passos: int, log, traduzir: bool = False) -> list[dict]:
     """Linhas já gravadas que valem. Descarta a última se ficou truncada e as que vão ser refeitas."""
     if not saida.exists():
         return []
@@ -64,9 +65,11 @@ def _ler_saida(saida: Path, spec: str, modelo: str, max_passos: int, log) -> lis
             descartadas += 1
             log(f"linha {n} de {saida} truncada: o item será refeito")
             continue
-        if (l["spec"], l["modelo"], l["max_passos"]) != (spec, modelo, max_passos):
+        traduzida = l.get("entrada_traduzida", False)
+        if (l["spec"], l["modelo"], l["max_passos"], traduzida) != (spec, modelo, max_passos, traduzir):
             raise ValueError(
-                f"{saida} é de outra execução ({l['spec']}, {l['modelo']}, max_passos {l['max_passos']}); use outro --saida"
+                f"{saida} é de outra execução ({l['spec']}, {l['modelo']}, max_passos {l['max_passos']}, "
+                f"entrada traduzida: {traduzida}); use outro --saida"
             )
         if _refazer(l):
             descartadas += 1
@@ -79,10 +82,11 @@ def _ler_saida(saida: Path, spec: str, modelo: str, max_passos: int, log) -> lis
     return validas
 
 
-def executar(itens, cliente, spec: str, saida: Path, max_passos: int = 6, limite: int | None = None, modelo: str = "", log=print) -> dict:
+def executar(itens, cliente, spec: str, saida: Path, max_passos: int = 6, limite: int | None = None, modelo: str = "",
+             log=print, traduzir: bool = False) -> dict:
     if max_passos < 1:
         raise ValueError("max_passos tem que ser ≥ 1")
-    feitos = _ler_saida(saida, spec, modelo, max_passos, log)
+    feitos = _ler_saida(saida, spec, modelo, max_passos, log, traduzir)
     ja = {l["id"] for l in feitos}
     ferramentas = Ferramentas(spec)
     for l in feitos:
@@ -94,8 +98,11 @@ def executar(itens, cliente, spec: str, saida: Path, max_passos: int = 6, limite
     with saida.open("a", encoding="utf-8") as f:
         for n, item in enumerate(pendentes, 1):
             sentido = sentido_por_regra(item["campos"])
-            r = enriquecer_item(item, sentido, cliente, ferramentas, max_passos=max_passos)
+            entrada = {**item, "texto": traduzir_texto(item["texto"])} if traduzir else item
+            r = enriquecer_item(entrada, sentido, cliente, ferramentas, max_passos=max_passos)
             linha = {**item, "sentido": sentido, **r, "modelo": modelo, "spec": spec, "max_passos": max_passos}
+            if traduzir:
+                linha["entrada_traduzida"] = True
             f.write(json.dumps(linha, ensure_ascii=False) + "\n")
             f.flush()
             if n % 25 == 0 or n == len(pendentes):
@@ -111,9 +118,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--modelo", default=MODELO)
     ap.add_argument("--max-passos", type=int, default=6)
     ap.add_argument("--limite", type=int)
+    ap.add_argument("--traduzir-entrada", action="store_true",
+                    help="troca os rótulos técnicos do texto por regra (traduzir.py) antes de o modelo ler")
     a = ap.parse_args(argv)
     cliente = ClienteOllama(a.modelo)
-    r = executar(carregar_entrada(a.entrada), cliente, a.spec, a.saida, a.max_passos, a.limite, a.modelo)
+    r = executar(carregar_entrada(a.entrada), cliente, a.spec, a.saida, a.max_passos, a.limite, a.modelo,
+                 traduzir=a.traduzir_entrada)
     print(f"OK: {r['novos']} itens novos, {r['ja_gravados']} já estavam em {a.saida}")
     return 0
 

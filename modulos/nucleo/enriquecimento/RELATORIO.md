@@ -87,7 +87,7 @@ servidor vira `nao_resolvido` com `motivo: modelo indisponível: …`, e a
 retomada (`enriquecedor.py`) refaz só esses itens, descarta uma última linha
 truncada e recusa misturar execuções de spec, modelo ou teto diferentes.
 
-Testes: `python3 -m unittest discover -s tests -t .` (64 testes, com cliente
+Testes: `python3 -m unittest discover -s tests -t .` (75 testes, com cliente
 falso; nenhum chama o modelo real).
 
 ## 4. Gabarito e medição (B4)
@@ -221,6 +221,32 @@ Resultado em `execucoes/segundo-modelo/` (`medidas.md`). A coluna do qwen3 é a
 - **O sentido piorou:** 4 frases de `avanco` comunicam recuo e a emenda nova virou avanço. O sentido continua vindo da regra; a frase é que contradiz.
 - Conclusão: com estes dois modelos pequenos, o ganho não vem do modelo. Vem de tirar texto da referência (com o qwen3, a spec pobre foi melhor que a boa nas duas rodadas) e de conferir a frase depois. Cada execução rodou uma vez; a variação entre rodadas não foi medida.
 
+### Entrada traduzida por regra (depois das medições)
+
+Na rodada 2, 24 dos 28 erros da spec pobre reprovaram só no critério sem jargão:
+o modelo copiava "liquidado" e "empenhado" do texto do item, que traz esses rótulos
+em 30 dos 40 itens. Testei trocar os rótulos por regra antes de o modelo ler
+(`traduzir.py`, opção `--traduzir-entrada`): "Valor Liquidado" vira "Valor aprovado
+para pagamento", "Valor Empenhado" vira "Valor reservado", e assim por diante,
+seguindo o `termo_traduzido` do modelo de dados da `main`. É tradução de rótulo
+fixo, trabalho de parser; o `dados.jsonl` guarda o texto original. Mesmo modelo
+(`qwen3:1.7b`), mesmos 40 itens, código desta branch. Resultado em
+`execucoes/entrada-traduzida/`.
+
+| Medida | R2 pobre | **pobre traduzida** | R2 boa | **boa traduzida** |
+| :-- | --: | --: | --: | --: |
+| Acurácia | 30,0% | **0,0%** | 5,0% | **10,0%** |
+| Critério sem jargão | 37,5% | **100%** | 5,0% | **100%** |
+| Critério valor | 90,0% | **5,0%** | 72,5% | **10,0%** |
+| Critério sentido | 100% | 95,0% | 95,0% | 100% |
+| Frases idênticas a uma anterior | 2 | **36** | 5 | **35** |
+| Tempo total | 312 s | 156 s | 459 s | 350 s |
+
+- **O jargão sumiu**: 100% das frases sem jargão, nas duas specs.
+- **Mas a acurácia não subiu, porque apareceu outra falha: a cópia de molde.** Na pobre, a primeira frase registrada saiu sem valor ("A emenda aumentou o valor reservado e pago em relação à anterior.") e o modelo a repetiu, igual, em 37 dos 40 itens, via `buscar_semelhante`. Na boa, o mesmo aconteceu a partir do segundo item, com "A emenda foi realizada com avanco, aumentando o valor reservado e pago." (36 vezes). A máscara "R$ X" da rodada 2 impedia copiar números, mas uma frase sem número passa pela máscara inteira.
+- **O que isso diz:** com o `qwen3:1.7b`, o modelo copia o que estiver mais perto, o jargão da entrada ou a frase da memória. Tirar uma fonte de cópia faz ele usar a outra. A falha está na forma como o agente reaproveita frases, mais do que no vocabulário.
+- **Próximo experimento:** `buscar_semelhante` devolver só frases que passaram na conferência do avaliador (ou nenhuma), junto com a entrada traduzida. Não rodei.
+
 ### Limites da medição
 
 - O avaliador confere o que dá para conferir por regra. O léxico de sentido e de jargão é limitado: "empregado" passou como não-jargão, e frases com sinônimos não previstos podem ser reprovadas. Ele foi validado nas 40 frases humanas e em exemplos da revisão adversária, não em um conjunto separado.
@@ -271,7 +297,7 @@ Falta: **um colega do grupo confirmar por escrito que o `carregar.py` funcionou*
 
 ```bash
 cd modulos/nucleo/enriquecimento
-python3 -m unittest discover -s tests -t .           # 68 testes, sem modelo
+python3 -m unittest discover -s tests -t .           # 75 testes, sem modelo
 python3 gabarito.py conferir                          # sorteio e rótulos
 ollama pull qwen3:1.7b && ollama serve
 python3 enriquecedor.py --spec pobre --entrada gabarito --saida /tmp/exec1.jsonl
