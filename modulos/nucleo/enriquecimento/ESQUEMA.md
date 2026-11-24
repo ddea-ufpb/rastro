@@ -5,7 +5,9 @@ Uma linha JSON por mudança de emenda entre dois lotes da CGU: o item do
 Os nomes seguem o modelo de dados do Trabalho 1,
 `especificacoes/joao-vitor/arquitetura/contratos/modelo-de-dados.md`, que
 está na branch `trabalho1/joao-vitor` (PR #2 do ddea-ufpb/rastro) e ainda
-não na `main`. O grupo ainda não tem um `CONTRATOS.md` comum.
+não na `main`. O grupo ainda não tem um `CONTRATOS.md` comum. O modelo de
+dados que está na `main` é o da Sarah; a equivalência de nomes está no fim
+deste arquivo.
 
 Para usar sem ler o JSON: `python3 carregar.py dados.jsonl --banco rastro.db`
 (ver o fim deste arquivo).
@@ -58,3 +60,61 @@ Para usar sem ler o JSON: `python3 carregar.py dados.jsonl --banco rastro.db`
 | `ResumoMudanca` | emenda e par de lotes, chave (`lote_novo_id`, `codigo_emenda`) | `sentido`, `resumo`, `confianca`, `status`, `motivo`, `modelo`, `spec`, mais `conferida` e `revisar`, calculados na carga |
 
 `ResumoMudanca` é uma tabela nova, que o modelo de dados do Trabalho 1 não tem: ver a decisão C4 em `RELATORIO.md`. Emenda `removida` só entra em `ResumoMudanca`, porque o Trabalho 1 não tem um `MudancaLote.tipo` para ela.
+
+## Equivalência com o modelo de dados da Sarah (`main`)
+
+O modelo que está na `main` é
+`especificacoes/sarah-araujo/arquitetura/contratos/modelo-dados.md`
+(PostgreSQL, nomes em minúsculas). Esta tabela liga cada nome deste arquivo ao
+equivalente de lá, para quem for juntar os dois.
+
+### Entidades
+
+| Aqui (Trabalho 1 do João Vitor) | Na `main` (Sarah) | Diferença |
+| :-- | :-- | :-- |
+| `LoteImportacao` | `versao_carga` | Lá, uma versão por carga, com `fonte_etag` e `ativa`. Aqui, um lote por data de referência, com `hash_sha256` do CSV |
+| `Fonte` | `versao_carga.fonte_url` | Lá não há tabela de fonte |
+| `MudancaLote` | não há | Lá não se grava a diferença entre versões. Dá para calcular comparando a `emenda` de duas versões |
+| `ResumoMudanca` | não há | Tabela nova desta etapa (decisão C4 do `RELATORIO.md`) |
+| `TabelaTraducao.texto_simples` | `termo_traduzido.traducao` | O texto a mostrar quando `revisar = 1`. Lá, a linha é achada por `termo_traduzido.fase = fase_simples` |
+| `campos.emenda` | uma linha de `emenda` | Lá só entram emendas da PB (`Código UF IBGE = 2500000`). Este corpus tem emendas de todo o país |
+
+### Campos da emenda (`campos.emenda` aqui, `emenda` lá)
+
+| Aqui | Na `main` | Diferença |
+| :-- | :-- | :-- |
+| `codigo` (e `campos.codigo_emenda`) | `codigo_emenda` | Lá a chave é `id_emenda`, que cobre emenda sem código e código repetido |
+| `ano` | `ano` | |
+| `tipo` | `tipo_emenda` | |
+| `numero` | `numero_emenda` | |
+| `autor_codigo` · `autor_nome` | `autor_id` · `autor.nome` | Lá o autor é uma tabela à parte |
+| `localidade_gasto` | `localidade_gasto` | |
+| `municipio_ibge` | `municipio_codigo_ibge` | |
+| `funcao_nome` · `subfuncao_nome` · `programa_nome` | `funcao` · `subfuncao` · `programa` | Aqui também ficam os códigos (`*_codigo`) |
+| `acao_codigo` · `acao_nome` | `codigo_acao` · `acao_orcamentaria` | |
+| `plano_orcamentario_codigo` · `plano_orcamentario_nome` | `plano_orcamentario` | |
+| `empenhado_centavos` | `valor_empenhado` | **Unidade:** aqui, centavos em inteiro; lá, reais em `numeric(15,2)`. Divida por 100 |
+| `liquidado_centavos` | `valor_liquidado` | idem |
+| `pago_centavos` | `valor_pago` | idem |
+| `rap_inscrito_centavos` | `rp_inscrito` | idem |
+| `rap_cancelado_centavos` | `rp_cancelado` | idem |
+| `rap_pago_centavos` | `rp_pago` | idem |
+| `uf_ibge` · `uf_gasto` · `regiao` · `possui_apoiador` | não há | Lá a UF vira `abrangencia` (`municipal`, `estadual`, `multiplo`) |
+
+### Estado da execução (`campos.estado_depois` aqui, `fase_simples` lá)
+
+As duas regras usam o mesmo pagamento (`pago + rap_pago`) e o mesmo devido
+(`empenhado − rap_cancelado`). Os nomes que mudam:
+
+| Aqui (`estado_execucao`) | Na `main` (`fase_simples`, view `emenda_ativa`) |
+| :-- | :-- |
+| `paga_em_parte` | `paga_parcial` |
+| `paga` | `paga` |
+| `liquidada` | `liquidada` |
+| `empenhada` | `empenhada` |
+| `sem_execucao` | `empenhada`, ou `cancelada` quando o devido é zero |
+| não há | `cancelada`: lá vem antes de tudo, quando o devido é zero ou negativo |
+
+As regras só divergem quando o devido é zero ou negativo. No `dados.jsonl`
+isso não acontece: recalculei a `fase_simples` dos 3 186 itens que têm
+`estado_depois`, e todos deram o estado equivalente da tabela acima.
