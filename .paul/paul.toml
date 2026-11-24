@@ -1,0 +1,34 @@
+name = "rastro"
+version = "0.0.0"
+status = "active"
+path = "."
+tags = []
+
+[paul]
+version = "1.4"
+source = "https://chrisai.cv/skool"
+
+[milestone]
+name = "v0.1 Initial Release"
+version = "0.1.0"
+status = "in_progress"
+phases = 6
+
+[phase]
+number = 1
+name = "Fundação"
+status = "planning"
+plans_completed = 0
+
+[loop]
+position = "PLAN"
+plan = "01-01"
+plan_path = "phases/01-fundacao/01-01-PLAN.md"
+
+[satellite]
+groom = true
+
+[stats]
+total_plans = 0
+total_phases = 6
+last_activity = "2026-11-24T15:30:49-03:00"

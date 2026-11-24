@@ -10,3 +10,10 @@ __pycache__/
 dist/
 build/
 coverage/
+
+# Fase 1
+.next/
+.ruff_cache/
+.pytest_cache/
+.coverage
+/data/
