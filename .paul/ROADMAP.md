@@ -20,7 +20,7 @@ Phases: 0 of 6 complete
 
 | Phase | Name | Plans | Status | Completed |
 |-------|------|-------|--------|-----------|
-| 1 | Fundação | 3 | Planning | - |
+| 1 | Fundação | 3 | In progress (1/3) | - |
 | 2 | Ingestão PB | TBD | Not started | - |
 | 3 | Núcleo | TBD | Not started | - |
 | 4 | Consulta | TBD | Not started | - |
@@ -41,7 +41,7 @@ Phases: 0 of 6 complete
 - Docker Compose (web, api, carga, db) e deploy condicionado ao CI verde
 
 **Plans:**
-- [ ] 01-01: Scaffold do monorepo + CI que falha quando deve
+- [x] 01-01: Scaffold do monorepo + CI que falha quando deve (PR #7)
 - [ ] 01-02: Schema PostgreSQL com restrições + migrações + testes de restrição
 - [ ] 01-03: Docker Compose + deploy gated por CI + proteção da `main`
 
@@ -49,7 +49,8 @@ Phases: 0 of 6 complete
 
 **Goal:** Baixar o ZIP da CGU por GET condicional (ETag), validar, filtrar PB, normalizar com proveniência por registro e publicar a versão com troca atômica.
 **Depends on:** Phase 1 (schema e CI)
-**Research:** Likely (formato real — `especificacoes/sarah-araujo/arquitetura/contratos/fonte-portal.md`)
+**Research:** Likely (formato real — `fonte-portal.md` da Sarah e do João Rafael)
+**Research topics:** favorecido só por CNPJ e descarte de PF/empresário individual (JR ADR-0001/0004); descartes por município (JR ADR-0009); ETag × download diário
 
 ### Phase 3: Núcleo
 

@@ -25,11 +25,12 @@ Moradores conseguem saber o que foi destinado à cidade deles por emendas parlam
 
 ## Inputs (especificações)
 
-Duas especificações individuais do Trabalho 1, ambas arc42 enxuto (C4, MADR, EARS, OpenAPI 3.1, cenários de qualidade de 6 partes). Decisão de init: **mesclar** — conflitos ficam como decisões abertas para `/paul:plan`.
+Três especificações individuais do Trabalho 1, todas arc42 enxuto (C4, MADR, EARS, OpenAPI 3.1, cenários de qualidade de 6 partes). Decisão de init: **mesclar** — conflitos ficam como decisões abertas para `/paul:plan`.
 
 | Spec | Autor | Conteúdo | Destaques |
 |------|-------|----------|-----------|
 | `especificacoes/joao-vitor/` | João Vitor Chaves | 19 telas (P01–P11, D01, S01–S05, O01–O02), 112 REQ, 10 ADRs, OpenAPI (20 ops) + AsyncAPI + CLI + modelo de dados, `verificar.py` (rastreabilidade) | Mapa explícito para os 4 módulos e envelope por módulo; assinaturas e alertas |
+| `especificacoes/joao-rafael/` *(PR #6, ainda não mesclado)* | João Rafael | 15 telas (P01–P10, S01–S03, O01–O02), 88 REQ, 10 ADRs, OpenAPI (17 ops) + CLI + `email-alerta.md` + `fonte-portal.md` + modelo de dados, `verificar.py` (OK) | **Quem recebeu**: favorecido só por CNPJ, nome parecido vira sugestão revisável que nunca soma; descarte de pessoa física **e empresário individual** antes de persistir (17/190 MEIs com CPF no nome); descartes visíveis por município; volumes reais PB (31 840 pagamentos, 19 647 PJ, 2 353 CNPJs; CNPJ em `EmendasParlamentares_PorFavorecido.csv`) |
 | `especificacoes/sarah-araujo/` | Sarah Araújo | 15 telas (A01–A15), 82 REQ, 9 ADRs, OpenAPI, `rotas-html.md`, `carga.md`, `fonte-portal.md`, modelo de dados | Fonte validada contra o arquivo real (T1): formato, ETag, 49% das linhas sem município único, restos a pagar, objeto do convênio |
 
 ## Requirements
@@ -75,6 +76,8 @@ None yet.
 
 **Business Context:** Disciplina DINF00071 — Desenvolvimento Dirigido por Especificação com Agentes (CI/UFPB, 2026.2). Ciclo por módulo: Plan → Audit → Apply → Unify. O risco do sistema é de **atribuição**, não de privacidade: uma tradução errada de fase pode afirmar que um parlamentar deixou de executar algo que executou.
 
+**Pendências de entrada:** `CONTRATOS.md` (FI-02) existe como rascunho no PR #5 (draft, João Vitor). Specs do Trabalho 2 abertas: PR #3 e #4 (João Vitor). A spec do João Rafael cita `modulos/ingestao/coleta-favorecidos/` (coleta do T2, 22/11/2026), que não está em nenhum branch remoto.
+
 **Technical Context:** Um repositório, quatro módulos independentes (`modulos/{ingestao,nucleo,consulta,saida}`, cada um com `.paul/` próprio). Contrato principal: **o lote publicado** — a ingestão publica; núcleo, consulta e saída leem sem saber como o CSV é lido. Cada módulo entrega sozinho: persistência, API, componente concorrente, desempenho medido e testes. Fonte real (T1 da Sarah): ZIP único cumulativo da CGU, sem chave, com `GET` condicional por ETag.
 
 ## Constraints
@@ -119,15 +122,28 @@ None yet.
 | Next.js + TypeScript + shadcn/ui | Escolha do usuário; tipos gerados do OpenAPI | Active |
 | Docker Compose | Ambiente reproduzível; deploy só com CI verde | Active |
 | Recorte: PB todos os anos primeiro, Brasil 2025 depois (fase 6) | Validado na T1; ETL e testes rápidos antes de escalar | Active |
-| Módulo `saida` mantido (chave anônima, alertas no painel) | README exige os 4 módulos | Active |
+| Módulo `saida` mantido | README exige os 4 módulos; canal (chave anônima × e-mail) em aberto | Active |
 | uv workspace: `modulos/<m>/` = pacote `rastro_<m>`, `app/` compõe FastAPI, `web/` = Next; import-linter impõe independência | README: cada módulo independente e testável sozinho | Active |
+
+### Consenso reforçado pela spec do João Rafael (2026-11-24)
+
+- PostgreSQL 16 com publicação numa transação e ponteiro de vigente (JR ADR-0002) — agora 2 de 3 specs + decisão do usuário.
+- Docker Compose (JR, SA) — 2 de 3 specs + decisão do usuário.
+- Fase derivada dos valores **com restos a pagar** + tradução por tabela versionada (JR ADR-0005, SA ADR-0003) — 2 de 3.
+- Destinado à cidade × recebido por entidades da cidade em blocos separados, sem somar (JR ADR-0010, SA ADR-0008, JV ADR-0010) — 3 de 3.
+- Proveniência `NOT NULL` por registro e devolvida com cada valor (JR ADR-0003) — vira restrição de schema no 01-02.
 
 ### Open Decisions
 
-| Tema | João Vitor | Sarah | Decidir em |
-|------|-----------|-------|------------|
-| Estados de execução | 5 estados (ADR-0006, *proposta*) | `fase_simples` com restos a pagar | Fase 3 |
-| Coleta | `rastro sincronizar` idempotente | Diária, GET condicional por ETag | Fase 2 |
+| Tema | João Vitor | Sarah | João Rafael | Decidir em |
+|------|-----------|-------|-------------|------------|
+| Estados de execução | 5 estados (ADR-0006, *proposta*) | `fase_simples` com restos a pagar | Fase dos valores com restos a pagar (ADR-0005) | Fase 3 |
+| Coleta | `rastro sincronizar` idempotente | Diária, GET condicional por ETag | `rastro importar --baixar` diário; asyncio, escritor único (ADR-0007) | Fase 2 |
+| Favorecidos | PF agregado por emenda e mês, sem nome/CPF (ADR-0007) | PF nunca identificado | PF **e empresário individual** descartados antes de persistir; só CNPJ identifica (ADR-0001, ADR-0004) | Fase 2 |
+| Descartes | — | — | Descartes por município expostos junto do resultado (ADR-0009) | Fase 2/4 |
+| Canal de alerta (`saida`) | Chave anônima 128 bits, alerta no painel | Sem alertas | E-mail com confirmação dupla, token de gestão, entrega única; único dado pessoal = e-mail, apagado ao cancelar (ADR-0006) | Fase 5 (impacto LGPD) |
+| Front-end | Next.js (decidido) | Jinja/HTMX | React + Vite SPA (ADR-0008) | Decidido: Next.js. JR diverge só no framework; tipos gerados do OpenAPI convergem |
+| Desempenho | script httpx | Locust | k6 | Fase 6 |
 
 ## Success Metrics
 
@@ -163,6 +179,7 @@ None yet.
 | Repository | github.com/ddea-ufpb/rastro |
 | Spec João Vitor | `especificacoes/joao-vitor/README.md` |
 | Spec Sarah | `especificacoes/sarah-araujo/README.md` |
+| Spec João Rafael | `especificacoes/joao-rafael/README.md` (PR #6) |
 
 ---
 *PROJECT.md — Updated when requirements or context change*
