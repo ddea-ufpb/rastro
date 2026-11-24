@@ -5,7 +5,9 @@ frase, para o morador, o que mudou em cada emenda entre os lotes. O sentido
 da mudança é classificado por regra (seção 1).
 
 Tudo o que este relatório afirma está nos arquivos desta pasta e no histórico
-do git da branch `trabalho2/etapa2-joao-vitor`.
+do git da branch `trabalho2/etapa2-joao-vitor`. As medidas saem de `medir.py`
+(`execucoes/*/medidas.*`) e de `carregar.py`; as contagens avulsas do texto saem
+de `contagens.py`, e `tests/test_contagens.py` falha se alguma delas mudar.
 
 ## 0. Ambiente
 
@@ -43,7 +45,7 @@ Como "se existe uma regra que acerta 100% das vezes, escreva a regra", o tipo
 foi para a regra. O modelo recebe o sentido pronto e só escreve a frase.
 
 Limite da regra: no corpus inteiro ela dá 2 920 `avanco`, 206 `nova`, 60
-`recuo` e 5 `removida`. Há 47 itens `avanco` em que alguma etapa também caiu
+`recuo` e 5 `removida`. Há 47 itens `avanco` em que o empenhado, o liquidado ou o pago também caiu
 (por exemplo, empenhado menor e liquidado maior). A regra chama de `avanco`,
 mas o gabarito, com 37 `avanco` em 40, não tem nenhum caso assim: essa
 fronteira não foi validada.
@@ -87,17 +89,18 @@ servidor vira `nao_resolvido` com `motivo: modelo indisponível: …`, e a
 retomada (`enriquecedor.py`) refaz só esses itens, descarta uma última linha
 truncada e recusa misturar execuções de spec, modelo ou teto diferentes.
 
-Testes: `python3 -m unittest discover -s tests -t .` (81 testes, com cliente
+Testes: `python3 -m unittest discover -s tests -t .` (87 testes, com cliente
 falso; nenhum chama o modelo real).
 
 ## 4. Gabarito e medição (B4)
 
 ### Gabarito
 
-- 40 itens sorteados por `gabarito.py sortear` (semente 20261123, `random.Random(semente).sample` do corpus ordenado por id), commit `b778989`.
-- Rotulados à mão por mim na folha `rotular.md` (tipo e frase) e importados com `gabarito.py importar`, commit `93cf3d9`, às 10:48 de 23/11/2026.
-- O primeiro código do enriquecedor é do commit `64707e3` (11:02), e a primeira execução veio depois. O enriquecedor lê do gabarito só os ids (`enriquecedor.carregar_entrada`); o rótulo nunca chega ao modelo.
+- 40 itens sorteados por `gabarito.py sortear` (semente 20261123, `random.Random(semente).sample` do corpus ordenado por id), commit `5d0283c`.
+- Rotulados à mão por mim na folha `rotular.md` (tipo e frase) e importados com `gabarito.py importar`, commit `19fa624`, às 10:48 de 23/11/2026.
+- O primeiro código do enriquecedor é do commit `0a8e599` (11:02), e a primeira execução veio depois. O enriquecedor lê do gabarito só os ids (`enriquecedor.carregar_entrada`); o rótulo nunca chega ao modelo.
 - `gabarito.py conferir` refaz o sorteio pela semente e confere o SHA-256 do corpus, então dá para provar que os itens foram sorteados e não escolhidos.
+- Os hashes citados aqui são os da branch atual. Em 23/11/2026 o histórico foi reescrito uma vez, só para corrigir a autoria dos commits; o conteúdo e as datas de autoria e de commit ficaram iguais (`git log --format='%h %ad %cd' 19fa624 0a8e599` mostra 10:48 e 11:02).
 
 ### Como a frase é medida
 
@@ -127,8 +130,8 @@ definidos antes das execuções.
 Cada rodada tem as duas execuções pedidas: especificação pobre e boa, os
 mesmos 40 itens, o mesmo modelo.
 
-- **Rodada 1** (código `64707e3`, resultados em `execucoes/rodada1/`, commit `2f32f5e`).
-- **Rodada 2** (código `3ef584d`, resultados em `execucoes/rodada2/`, commit `abd5498`). Entre as duas, mudei duas coisas, pelos motivos abaixo, e declaro as duas:
+- **Rodada 1** (código `0a8e599`, resultados em `execucoes/rodada1/`, commit `e286da2`).
+- **Rodada 2** (código `524c75d`, resultados em `execucoes/rodada2/`, commit `dd9f0a8`). Entre as duas, mudei duas coisas, pelos motivos abaixo, e declaro as duas:
   1. `buscar_semelhante` passou a trocar os valores por `R$ X`. Na rodada 1, o modelo copiava a frase do item anterior com os valores dele: 17 das 40 frases da pobre e 14 da boa eram repetição exata de uma frase anterior.
   2. Na `boa.json`, os exemplos de arredondamento ("R$ 405 mil", "R$ 1,2 milhão") eram valores dos itens 1 e 2 do gabarito, que eu tinha visto ao escrever a referência. Troquei por valores arbitrários ("R$ 73 mil", "R$ 4,9 milhões"). As regras de redação continuam sendo minhas e foram escritas depois de ver os textos de alguns itens do gabarito (não os rótulos): isso é um viés a favor da spec boa, e mesmo assim ela perdeu.
 
@@ -269,7 +272,7 @@ morador precisa saber. Como a memória agora só guarda frases que o avaliador
 aprova, o modelo achou o molde que o avaliador aceita e o repetiu. É a medida
 virando alvo: o avaliador confere se a frase não erra, não se ela informa.
 
-Para enxergar isso, contei depois, sem mudar a métrica oficial, quantas frases
+Para enxergar isso, contei depois (`contagens.py`), sem mudar a métrica oficial, quantas frases
 aprovadas citam a etapa que mudou (reservado, aprovado/liberado, pago ou valores
 de anos anteriores), com um léxico simples que reconhece a etapa em 37 das 40
 frases humanas. Por essa conta:
@@ -329,13 +332,14 @@ Falta: **um colega do grupo confirmar por escrito que o `carregar.py` funcionou*
 
 ```bash
 cd modulos/nucleo/enriquecimento
-python3 -m unittest discover -s tests -t .           # 81 testes, sem modelo
+python3 -m unittest discover -s tests -t .           # 87 testes, sem modelo
 python3 gabarito.py conferir                          # sorteio e rótulos
 ollama pull qwen3:1.7b && ollama serve
 python3 enriquecedor.py --spec pobre --entrada gabarito --saida /tmp/exec1.jsonl
 python3 enriquecedor.py --spec boa   --entrada gabarito --saida /tmp/exec2.jsonl
 python3 medir.py /tmp/exec1.jsonl /tmp/exec2.jsonl
 python3 carregar.py dados.jsonl --banco /tmp/rastro.db
+python3 contagens.py                                 # as contagens avulsas citadas no texto
 ```
 
 ## 8. Vídeo (item D, opcional)

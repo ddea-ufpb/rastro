@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3 só com biblioteca padrão (`urllib`, `json`, `sqlite3`, `unittest`); Ollama 0.33 local com `qwen3:1.7b`, `temperature: 0`, `seed: 42`, `think: false`.
 
-**Spec:** tutorial do professor (Google Doc "trabalho2_tutorial_agente_coleta", seções 5 a 7) e as decisões do aluno nesta sessão: gabarito humano em `modulos/nucleo/enriquecimento/gabarito.jsonl` (commit 93cf3d9); tipo por regra; o modelo só escreve a frase.
+**Spec:** tutorial do professor (Google Doc "trabalho2_tutorial_agente_coleta", seções 5 a 7) e as decisões do aluno nesta sessão: gabarito humano em `modulos/nucleo/enriquecimento/gabarito.jsonl` (commit 19fa624); tipo por regra; o modelo só escreve a frase.
 
 ## Global Constraints
 
@@ -18,7 +18,7 @@
 - A referência entra por ferramenta, lida de arquivo (`referencia/pobre.json`, `referencia/boa.json`).
 - Lista branca de ferramentas; nada de `eval` nem argumento do modelo no shell.
 - Item não resolvido fica no arquivo de saída com `resumo` vazio e `motivo`.
-- O gabarito não muda depois do commit 93cf3d9; a nenhuma execução é permitido ler `rotulo.frase` do gabarito.
+- O gabarito não muda depois do commit 19fa624; a nenhuma execução é permitido ler `rotulo.frase` do gabarito.
 - Nomes de campo seguem `especificacoes/joao-vitor/arquitetura/contratos/modelo-de-dados.md` (Trabalho 1): `codigo_emenda`, `estado_antes`, `estado_depois`, `tipo`, `etapa`, `*_centavos`. O campo novo de classificação chama `sentido`, para não colidir com `MudancaLote.tipo`.
 - Frase com no máximo 280 caracteres (o mesmo limite de `TabelaTraducao.explicacao`).
 - Chamada ao Ollama com retry limitado (3 tentativas, backoff exponencial com jitter) e circuit breaker (abre após 5 falhas seguidas, 30 s de espera).

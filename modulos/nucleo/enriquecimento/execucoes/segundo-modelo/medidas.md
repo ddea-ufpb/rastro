@@ -1,6 +1,6 @@
 # Medidas das execuções
 
-Gerado por `medir.py`. Gabarito: 40 itens rotulados à mão (commit 93cf3d9).
+Gerado por `medir.py`. Gabarito: 40 itens rotulados à mão (commit 19fa624).
 
 | Medida | exec2-boa-gemma4 | exec2-boa-qwen3 | frases humanas |
 | :-- | --: | --: | --: |

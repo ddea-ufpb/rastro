@@ -87,7 +87,7 @@ def _pct(x: float) -> str:
 
 
 def _md(nomes: list[str], medidas: list[dict], base: dict) -> str:
-    out = ["# Medidas das execuções", "", "Gerado por `medir.py`. Gabarito: 40 itens rotulados à mão (commit 93cf3d9).", ""]
+    out = ["# Medidas das execuções", "", "Gerado por `medir.py`. Gabarito: 40 itens rotulados à mão (commit 19fa624).", ""]
     out += ["| Medida | " + " | ".join(nomes) + " | frases humanas |", "| :-- | " + " | ".join("--:" for _ in nomes) + " | --: |"]
     linhas = [
         ("Formato válido", lambda m: _pct(m["formato_valido"])),
