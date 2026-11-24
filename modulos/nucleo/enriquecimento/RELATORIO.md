@@ -87,7 +87,7 @@ servidor vira `nao_resolvido` com `motivo: modelo indisponível: …`, e a
 retomada (`enriquecedor.py`) refaz só esses itens, descarta uma última linha
 truncada e recusa misturar execuções de spec, modelo ou teto diferentes.
 
-Testes: `python3 -m unittest discover -s tests -t .` (75 testes, com cliente
+Testes: `python3 -m unittest discover -s tests -t .` (81 testes, com cliente
 falso; nenhum chama o modelo real).
 
 ## 4. Gabarito e medição (B4)
@@ -247,6 +247,38 @@ fixo, trabalho de parser; o `dados.jsonl` guarda o texto original. Mesmo modelo
 - **O que isso diz:** com o `qwen3:1.7b`, o modelo copia o que estiver mais perto, o jargão da entrada ou a frase da memória. Tirar uma fonte de cópia faz ele usar a outra. A falha está na forma como o agente reaproveita frases, mais do que no vocabulário.
 - **Próximo experimento:** `buscar_semelhante` devolver só frases que passaram na conferência do avaliador (ou nenhuma), junto com a entrada traduzida. Não rodei.
 
+### Memória só com frases conferidas (depois das medições)
+
+Para cortar a cópia de molde, `buscar_semelhante` passou a devolver só frases que
+passaram na mesma conferência da carga (avaliador e auditoria de etapa), com a opção
+`--memoria-conferida`. Rodei três variantes nos mesmos 40 itens, com o `qwen3:1.7b`.
+Resultado em `execucoes/memoria-conferida/`.
+
+| Medida | R2 pobre | memória conferida, pobre | + entrada traduzida, pobre | + entrada traduzida, boa |
+| :-- | --: | --: | --: | --: |
+| Acurácia (4 critérios) | 30,0% | 80,0% | **92,5%** | 87,5% |
+| Acurácia auditada | 20,0% | **70,0%** | 92,5% | 37,5% |
+| Auditada **e** cita a etapa que mudou (pós-hoc) | 8 de 40 | **23 de 40** | **1 de 40** | 13 de 40 |
+| Moldes diferentes de frase | — | 8 | 5 | 8 |
+
+**O 92,5% não é um acerto.** Com a entrada traduzida e a memória conferida, 36 das
+40 frases viraram o mesmo molde: "A emenda aumentou o valor da transferência em R$ N".
+Ele passa nos quatro critérios: tem um valor do item, não tem jargão e o sentido é
+avanço. Mas não diz se o dinheiro foi reservado, aprovado ou pago, que é o que o
+morador precisa saber. Como a memória agora só guarda frases que o avaliador
+aprova, o modelo achou o molde que o avaliador aceita e o repetiu. É a medida
+virando alvo: o avaliador confere se a frase não erra, não se ela informa.
+
+Para enxergar isso, contei depois, sem mudar a métrica oficial, quantas frases
+aprovadas citam a etapa que mudou (reservado, aprovado/liberado, pago ou valores
+de anos anteriores), com um léxico simples que reconhece a etapa em 37 das 40
+frases humanas. Por essa conta:
+
+- **A melhor variante real é a memória conferida com a entrada original:** 23 de 40 frases aprovadas e citando a etapa, contra 8 da rodada 2. As frases ainda usam "empregado" no lugar de "empenhado" (22 das 40), mas separam pagamento de reserva ("O valor pago foi aumentado em R$ 9.800,00.").
+- **A tradução da entrada piorou a informação:** sem os rótulos, o modelo trocou a etapa por "transferência", palavra que vem do tipo da emenda ("Transferências com Finalidade Definida", em 35 dos 40 textos) e não diz etapa nenhuma.
+- **O que fica para o projeto:** o critério "cita a etapa que mudou" precisa entrar no avaliador, e a memória deve guardar só frases que passam nele. A conferência da carga (`carregar.py`) continua com os quatro critérios mais a auditoria. Com o molde genérico ela aprovaria frases pobres de informação, por isso não liguei nenhuma dessas opções no `dados.jsonl`.
+- Cada variante rodou uma vez, nos mesmos 40 itens que orientaram a mudança. Os números precisam ser confirmados em outro conjunto antes de virar regra.
+
 ### Limites da medição
 
 - O avaliador confere o que dá para conferir por regra. O léxico de sentido e de jargão é limitado: "empregado" passou como não-jargão, e frases com sinônimos não previstos podem ser reprovadas. Ele foi validado nas 40 frases humanas e em exemplos da revisão adversária, não em um conjunto separado.
@@ -297,7 +329,7 @@ Falta: **um colega do grupo confirmar por escrito que o `carregar.py` funcionou*
 
 ```bash
 cd modulos/nucleo/enriquecimento
-python3 -m unittest discover -s tests -t .           # 75 testes, sem modelo
+python3 -m unittest discover -s tests -t .           # 81 testes, sem modelo
 python3 gabarito.py conferir                          # sorteio e rótulos
 ollama pull qwen3:1.7b && ollama serve
 python3 enriquecedor.py --spec pobre --entrada gabarito --saida /tmp/exec1.jsonl

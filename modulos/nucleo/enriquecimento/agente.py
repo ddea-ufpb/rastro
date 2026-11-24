@@ -15,6 +15,7 @@ import time
 import unicodedata
 from pathlib import Path
 
+from avaliar import avaliar, etapa_coerente
 from cliente import ErroModelo
 
 AQUI = Path(__file__).resolve().parent
@@ -48,13 +49,16 @@ def _chave(s: str) -> str:
 
 
 class Ferramentas:
-    def __init__(self, spec: str, pasta: Path = AQUI / "referencia"):
+    def __init__(self, spec: str, pasta: Path = AQUI / "referencia", so_conferidas: bool = False):
+        """so_conferidas: buscar_semelhante só devolve frases que passaram na conferência do avaliador
+        (a mesma da carga). Sem a opção, toda frase registrada entra na memória."""
         if spec not in ("pobre", "boa"):
             raise ValueError("spec é 'pobre' ou 'boa'")
         self.spec = spec
         self.ref = json.loads((pasta / f"{spec}.json").read_text(encoding="utf-8"))
         self.glossario = {_chave(k): v for k, v in self.ref["glossario"].items()}
         self.registradas: list[dict] = []
+        self.so_conferidas = so_conferidas
         self._esquemas = {
             "consultar_glossario": {
                 "type": "object",
@@ -169,7 +173,11 @@ class Ferramentas:
         # só o tom: os valores de outro item viram "R$ X" (na rodada 1 o modelo copiava os números)
         return json.dumps([_mascarar(r["resumo"]) for r in mesmos[-2:]], ensure_ascii=False)
 
-    def lembrar(self, sentido: str, funcao: str, resumo: str) -> None:
+    def lembrar(self, sentido: str, funcao: str, resumo: str, campos: dict | None = None, confianca: str | None = None) -> None:
+        if self.so_conferidas and not (
+            campos is not None and avaliar(resumo, confianca, campos, sentido)["correta"] and etapa_coerente(resumo, campos)
+        ):
+            return
         self.registradas.append({"sentido": sentido, "funcao": funcao, "resumo": resumo})
 
 
@@ -214,7 +222,7 @@ def enriquecer_item(item: dict, sentido: str, cliente, ferramentas: Ferramentas,
                 if erro:
                     mensagens.append({"role": "tool", "tool_name": nome, "content": erro})
                     continue
-                ferramentas.lembrar(sentido, funcao, limpos["resumo"])
+                ferramentas.lembrar(sentido, funcao, limpos["resumo"], item["campos"], limpos["confianca"])
                 return _resultado(
                     "resolvido", passo, inicio, relogio,
                     resumo=limpos["resumo"], confianca=limpos["confianca"], justificativa=limpos.get("justificativa", ""),
