@@ -147,7 +147,7 @@ formato arc42 enxuto (C4, ADRs em MADR, requisitos em EARS, OpenAPI 3.1, cenári
 |---|---|---|---|---|---|
 | Sarah Araújo | [`sarah-araujo/`](especificacoes/sarah-araujo/) | 15 | 82 | 9 | mesclado |
 | João Vitor | [`joao-vitor/`](especificacoes/joao-vitor/) | 19 | 112 | 10 | mesclado |
-| João Rafael | `joao-rafael/` | 15 | 88 | 10 | PR #6 |
+| João Rafael | [`joao-rafael/`](especificacoes/joao-rafael/) | 15 | 88 | 10 | mesclado |
 
 O PAUL da raiz (`.paul/`) junta as três especificações. Onde há consenso, ele já registra a decisão.
 Onde divergem (favorecido por CNPJ, canal de alerta, modelo de fases), a questão fica aberta até a
