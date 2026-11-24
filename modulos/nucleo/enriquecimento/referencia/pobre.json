@@ -1,0 +1,22 @@
+{
+  "_nota": "Especificação pobre (Execução 1): definições técnicas sem regras, e descrições que só dizem o que a ferramenta faz.",
+  "descricoes": {
+    "consultar_glossario": "Devolve a definição de um termo de orçamento público.",
+    "buscar_semelhante": "Devolve frases já registradas para itens parecidos.",
+    "registrar": "Registra a frase do item e encerra."
+  },
+  "glossario": {
+    "empenhado": "Valor empenhado: montante comprometido pelo órgão por meio de nota de empenho, que reserva a dotação orçamentária para a despesa.",
+    "liquidado": "Valor liquidado: despesa cujo direito do credor foi verificado com base nos documentos comprobatórios do serviço ou da entrega.",
+    "pago": "Valor pago: despesa liquidada que teve a ordem bancária emitida em favor do credor.",
+    "restos a pagar inscritos": "Restos a pagar inscritos: despesas empenhadas e não pagas até 31 de dezembro, inscritas para pagamento em exercícios seguintes.",
+    "restos a pagar pagos": "Restos a pagar pagos: valores inscritos em restos a pagar que foram pagos no exercício corrente.",
+    "restos a pagar cancelados": "Restos a pagar cancelados: valores inscritos em restos a pagar que foram cancelados.",
+    "emenda individual": "Emenda individual: emenda apresentada por um parlamentar ao orçamento da União.",
+    "emenda de bancada": "Emenda de bancada: emenda apresentada pela bancada estadual ao orçamento da União.",
+    "transferencias especiais": "Transferências especiais: repasse direto ao ente federado, sem finalidade definida no orçamento.",
+    "transferencias com finalidade definida": "Transferências com finalidade definida: repasse vinculado a programação específica do orçamento.",
+    "multiplo": "Múltiplo: a emenda tem mais de uma localidade de aplicação.",
+    "nacional": "Nacional: a emenda não tem localidade específica de aplicação."
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "semente": 20261123,
+  "tamanho": 40,
+  "corpus": "coleta/corpus.jsonl",
+  "corpus_sha256": "a63b596b572d641a72ecfbc309662233817d4e9eda9e6c60c8ef6d7ab5fb7657",
+  "itens_no_corpus": 3191,
+  "metodo": "random.Random(semente).sample(corpus ordenado por id, tamanho)"
+}

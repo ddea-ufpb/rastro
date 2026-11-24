@@ -1,0 +1,403 @@
+{
+  "linha_de_base_humana": {
+    "itens": 40,
+    "formato_valido": 1.0,
+    "acuracia": 1.0,
+    "acuracia_auditada": 1.0,
+    "tempo_total_s": 0.0,
+    "passos_por_item": 0.0,
+    "nao_resolvidos": 0,
+    "criterios": {
+      "formato": 1.0,
+      "sentido": 1.0,
+      "valor": 1.0,
+      "sem_jargao": 1.0
+    },
+    "matriz": {
+      "avanco": {
+        "avanco": 37,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "recuo": {
+        "avanco": 0,
+        "recuo": 2,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "nova": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 1,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "removida": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "correcao_cadastral": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      }
+    },
+    "erros": []
+  },
+  "exec1-pobre-traduzida": {
+    "itens": 40,
+    "formato_valido": 1.0,
+    "acuracia": 0.925,
+    "acuracia_auditada": 0.925,
+    "tempo_total_s": 192.2,
+    "passos_por_item": 3.025,
+    "nao_resolvidos": 0,
+    "criterios": {
+      "formato": 1.0,
+      "sentido": 0.975,
+      "valor": 0.95,
+      "sem_jargao": 1.0
+    },
+    "matriz": {
+      "avanco": {
+        "avanco": 37,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "recuo": {
+        "avanco": 1,
+        "recuo": 1,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "nova": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 1,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "removida": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "correcao_cadastral": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      }
+    },
+    "erros": [
+      {
+        "id": "rastro-mud-20261119-202671080007",
+        "texto": "Emenda 202671080007 (2026), de BANCADA DO DISTRITO FEDERAL, Emenda de Bancada, função Educação, local de aplicação DISTRITO FEDERAL (UF). Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Empenhado passou de R$ 12.678.442,00 para R$ 13.084.323,85 (+R$ 405.881,85); Valor Pago passou de R$ 3.570.692,80 para R$ 3.609.940,38 (+R$ 39.247,58).",
+        "resumo": "A emenda aumentou o valor reservado e pago em relação à anterior.",
+        "motivo": "",
+        "falhou": [
+          "valor"
+        ],
+        "gabarito": "O processo andou: o governo reservou mais R$ 405 mil e pagou cerca de R$ 39 mil para a Educação no DF."
+      },
+      {
+        "id": "rastro-mud-20261119-202539940016",
+        "texto": "Emenda 202539940016 (2025), de GENERAL GIRAO, Emenda Individual - Transferências com Finalidade Definida, função Defesa nacional, local de aplicação RIO GRANDE DO NORTE (UF). Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Restos A Pagar Inscritos passou de R$ 165.527,31 para R$ 156.654,73 (-R$ 8.872,58); Valor Restos A Pagar Cancelados passou de R$ 0,00 para R$ 8.872,58 (+R$ 8.872,58).",
+        "resumo": "O valor da emenda foi recuado em R$ 8.872,58 entre os anos seguintes.",
+        "motivo": "",
+        "falhou": [
+          "sentido"
+        ],
+        "gabarito": "Ocorreu um recuo na emenda, pois o governo cancelou quase R$ 9 mil que estavam atrasados desde anos anteriores aguardando pagamento."
+      },
+      {
+        "id": "rastro-mud-20261119-202641300018",
+        "texto": "Emenda 202641300018 (2026), de SAMIA BOMFIM, Emenda Individual - Transferências com Finalidade Definida, função Saúde, local de aplicação MÚLTIPLO. Aparece pela primeira vez no lote de 19/11/2026 (não estava no de 26/10/2026), com Valor Empenhado R$ 700.000,00, Valor Liquidado R$ 0,00, Valor Pago R$ 0,00, Valor Restos A Pagar Inscritos R$ 0,00, Valor Restos A Pagar Cancelados R$ 0,00, Valor Restos A Pagar Pagos R$ 0,00.",
+        "resumo": "Nova emenda com valor reservado e pago em valores zero, indicando que o valor foi deixado para pagamento em anos subsequentes.",
+        "motivo": "",
+        "falhou": [
+          "valor"
+        ],
+        "gabarito": "É uma emenda nova que acaba de entrar no sistema já garantindo a reserva de R$ 700 mil para a Saúde."
+      }
+    ]
+  },
+  "exec2-boa-traduzida": {
+    "itens": 40,
+    "formato_valido": 0.95,
+    "acuracia": 0.875,
+    "acuracia_auditada": 0.375,
+    "tempo_total_s": 157.5,
+    "passos_por_item": 3.375,
+    "nao_resolvidos": 2,
+    "criterios": {
+      "formato": 0.95,
+      "sentido": 0.95,
+      "valor": 0.875,
+      "sem_jargao": 0.95
+    },
+    "matriz": {
+      "avanco": {
+        "avanco": 35,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 2
+      },
+      "recuo": {
+        "avanco": 0,
+        "recuo": 2,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "nova": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 1,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "removida": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "correcao_cadastral": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      }
+    },
+    "erros": [
+      {
+        "id": "rastro-mud-20261119-202643200021",
+        "texto": "Emenda 202643200021 (2026), de CAROL DARTORA, Emenda Individual - Transferências com Finalidade Definida, função Educação, local de aplicação PARANÁ (UF). Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Empenhado passou de R$ 274.820,00 para R$ 1.524.820,00 (+R$ 1.250.000,00); Valor Liquidado passou de R$ 260.740,00 para R$ 1.515.740,00 (+R$ 1.255.000,00); Valor Pago passou de R$ 251.200,00 para R$ 265.740,00 (+R$ 14.540,00).",
+        "resumo": "A emenda foi realizada com avanco, aumentando o valor reservado e pago.",
+        "motivo": "",
+        "falhou": [
+          "valor"
+        ],
+        "gabarito": "O dinheiro avançou bem: mais R$ 1,2 milhão foi garantido no papel e R$ 14,5 mil pingaram na conta para a Educação no Paraná."
+      },
+      {
+        "id": "rastro-mud-20261119-202644130007",
+        "texto": "Emenda 202644130007 (2026), de LUIZ GASTAO, Emenda Individual - Transferências com Finalidade Definida, função Cultura, local de aplicação CEARÁ (UF). Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Empenhado passou de R$ 284.503,33 para R$ 290.426,28 (+R$ 5.922,95); Valor Liquidado passou de R$ 260.722,67 para R$ 276.313,81 (+R$ 15.591,14); Valor Pago passou de R$ 230.034,17 para R$ 235.957,12 (+R$ 5.922,95).",
+        "resumo": "A emenda foi ajustada para aumentar o valor reservado e pago no período especificado.",
+        "motivo": "",
+        "falhou": [
+          "valor"
+        ],
+        "gabarito": "A emenda andou um pouquinho, com mais R$ 15 mil liberados no sistema e quase R$ 6 mil pagos de fato para a Cultura no Ceará."
+      },
+      {
+        "id": "rastro-mud-20261119-202641550011",
+        "texto": "Emenda 202641550011 (2026), de KIM KATAGUIRI, Emenda Individual - Transferências com Finalidade Definida, função Segurança pública, local de aplicação MÚLTIPLO. Entre o lote de 26/10/2026 e o de 19/11/2026: Localidade de aplicação do recurso passou de \"AMERICANA - SP\" para \"MÚLTIPLO\"; Código Município IBGE passou de \"3501608\" para \"Sem informação\"; Município passou de \"AMERICANA\" para \"Múltiplo\"; Valor Empenhado passou de R$ 248.000,00 para R$ 498.480,75 (+R$ 250.480,75).",
+        "resumo": "A emenda foi ajustada para aumentar o valor reservado e o valor pago.",
+        "motivo": "",
+        "falhou": [
+          "valor"
+        ],
+        "gabarito": "Além de mudar o destino da verba para vários municípios, o governo também fez a emenda avançar reservando mais R$ 250 mil para ela."
+      },
+      {
+        "id": "rastro-mud-20261119-202644090002",
+        "texto": "Emenda 202644090002 (2026), de LUCAS RAMOS, Emenda Individual - Transferências com Finalidade Definida, função Ciência e Tecnologia, local de aplicação PERNAMBUCO (UF). Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Empenhado passou de R$ 1.000.000,00 para R$ 1.500.000,00 (+R$ 500.000,00).",
+        "resumo": "",
+        "motivo": "teto de passos",
+        "falhou": [
+          "formato",
+          "sentido",
+          "valor",
+          "sem_jargao"
+        ],
+        "gabarito": "O processo avançou e o governo garantiu a reserva de mais R$ 500 mil para Ciência e Tecnologia em Pernambuco."
+      },
+      {
+        "id": "rastro-mud-20261119-202644210004",
+        "texto": "Emenda 202644210004 (2026), de MARCOS TAVARES, Emenda Individual - Transferências com Finalidade Definida, função Desporto e lazer, local de aplicação Nacional. Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Liquidado passou de R$ 247.464,00 para R$ 492.464,00 (+R$ 245.000,00); Valor Pago passou de R$ 247.464,00 para R$ 492.464,00 (+R$ 245.000,00).",
+        "resumo": "",
+        "motivo": "teto de passos",
+        "falhou": [
+          "formato",
+          "sentido",
+          "valor",
+          "sem_jargao"
+        ],
+        "gabarito": "A execução andou bem e garantiu a liberação e o pagamento de R$ 245 mil para o Esporte e Lazer."
+      }
+    ]
+  },
+  "exec1-pobre-original": {
+    "itens": 40,
+    "formato_valido": 1.0,
+    "acuracia": 0.8,
+    "acuracia_auditada": 0.7,
+    "tempo_total_s": 154.7,
+    "passos_por_item": 2.95,
+    "nao_resolvidos": 0,
+    "criterios": {
+      "formato": 1.0,
+      "sentido": 1.0,
+      "valor": 0.875,
+      "sem_jargao": 0.925
+    },
+    "matriz": {
+      "avanco": {
+        "avanco": 37,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "recuo": {
+        "avanco": 0,
+        "recuo": 2,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "nova": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 1,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "removida": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      },
+      "correcao_cadastral": {
+        "avanco": 0,
+        "recuo": 0,
+        "nova": 0,
+        "removida": 0,
+        "correcao_cadastral": 0,
+        "nao_resolvido": 0
+      }
+    },
+    "erros": [
+      {
+        "id": "rastro-mud-20261119-202643200021",
+        "texto": "Emenda 202643200021 (2026), de CAROL DARTORA, Emenda Individual - Transferências com Finalidade Definida, função Educação, local de aplicação PARANÁ (UF). Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Empenhado passou de R$ 274.820,00 para R$ 1.524.820,00 (+R$ 1.250.000,00); Valor Liquidado passou de R$ 260.740,00 para R$ 1.515.740,00 (+R$ 1.255.000,00); Valor Pago passou de R$ 251.200,00 para R$ 265.740,00 (+R$ 14.540,00).",
+        "resumo": "Valor empregado e pago foram aumentados em R$ X e R$ X, respectivamente.",
+        "motivo": "",
+        "falhou": [
+          "valor"
+        ],
+        "gabarito": "O dinheiro avançou bem: mais R$ 1,2 milhão foi garantido no papel e R$ 14,5 mil pingaram na conta para a Educação no Paraná."
+      },
+      {
+        "id": "rastro-mud-20261119-202622100014",
+        "texto": "Emenda 202622100014 (2026), de ESPERIDIAO AMIN, Emenda Individual - Transferências com Finalidade Definida, função Segurança pública, local de aplicação SANTA CATARINA (UF). Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Liquidado passou de R$ 0,00 para R$ 355.230,00 (+R$ 355.230,00).",
+        "resumo": "Valor liquidado foi aumentado em R$ 355.230,00.",
+        "motivo": "",
+        "falhou": [
+          "sem_jargao"
+        ],
+        "gabarito": "A papelada andou e mais de R$ 355 mil foram atestados como prontos para pagamento na Segurança Pública em SC."
+      },
+      {
+        "id": "rastro-mud-20261119-202642720012",
+        "texto": "Emenda 202642720012 (2026), de JAIME BAGATTOLI, Emenda Individual - Transferências com Finalidade Definida, função Segurança pública, local de aplicação RONDÔNIA (UF). Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Liquidado passou de R$ 49.764,00 para R$ 199.464,00 (+R$ 149.700,00).",
+        "resumo": "Valor empregado e pago foram aumentados em R$ X e R$ X, respectivamente.",
+        "motivo": "",
+        "falhou": [
+          "valor"
+        ],
+        "gabarito": "O serviço andou e o governo atestou a liberação de quase R$ 150 mil que agora ficam no aguardo do pagamento para a Segurança em Rondônia."
+      },
+      {
+        "id": "rastro-mud-20261119-202571260005",
+        "texto": "Emenda 202571260005 (2025), de BANCADA DE SANTA CATARINA, Emenda de Bancada, função Segurança pública, local de aplicação SANTA CATARINA (UF). Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Restos A Pagar Inscritos passou de R$ 6.609.389,94 para R$ 6.595.546,74 (-R$ 13.843,20); Valor Restos A Pagar Pagos passou de R$ 3.024.772,80 para R$ 3.038.616,00 (+R$ 13.843,20).",
+        "resumo": "Valor empregado e pago foram aumentados em R$ X e R$ X, respectivamente.",
+        "motivo": "",
+        "falhou": [
+          "valor"
+        ],
+        "gabarito": "Cerca de R$ 13,8 mil de anos anteriores destravou e foi pago para a Segurança em Santa Catarina."
+      },
+      {
+        "id": "rastro-mud-20261119-202539940016",
+        "texto": "Emenda 202539940016 (2025), de GENERAL GIRAO, Emenda Individual - Transferências com Finalidade Definida, função Defesa nacional, local de aplicação RIO GRANDE DO NORTE (UF). Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Restos A Pagar Inscritos passou de R$ 165.527,31 para R$ 156.654,73 (-R$ 8.872,58); Valor Restos A Pagar Cancelados passou de R$ 0,00 para R$ 8.872,58 (+R$ 8.872,58).",
+        "resumo": "Valor dos restos a pagar foi reduzido em R$ 8.872,58.",
+        "motivo": "",
+        "falhou": [
+          "sem_jargao"
+        ],
+        "gabarito": "Ocorreu um recuo na emenda, pois o governo cancelou quase R$ 9 mil que estavam atrasados desde anos anteriores aguardando pagamento."
+      },
+      {
+        "id": "rastro-mud-20261119-202541800017",
+        "texto": "Emenda 202541800017 (2025), de FABIANO CONTARATO, Emenda Individual - Transferências com Finalidade Definida, função Cultura, local de aplicação MÚLTIPLO. Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Restos A Pagar Inscritos passou de R$ 901.312,00 para R$ 900.000,00 (-R$ 1.312,00); Valor Restos A Pagar Cancelados passou de R$ 200.000,00 para R$ 201.312,00 (+R$ 1.312,00).",
+        "resumo": "O valor dos restos a pagar foi reduzido em R$ 1.312,00 e o valor dos restos cancelados foi aumentado em R$ 1.312,00.",
+        "motivo": "",
+        "falhou": [
+          "sem_jargao"
+        ],
+        "gabarito": "Tivemos um pequeno recuo com o cancelamento definitivo de cerca de R$ 1,3 mil de verbas passadas que não serão mais pagas."
+      },
+      {
+        "id": "rastro-mud-20261119-202540770017",
+        "texto": "Emenda 202540770017 (2025), de ZE VITOR, Emenda Individual - Transferências com Finalidade Definida, função Urbanismo, local de aplicação MINAS GERAIS (UF). Entre o lote de 26/10/2026 e o de 19/11/2026: Valor Restos A Pagar Inscritos passou de R$ 100.032,03 para R$ 13.037,43 (-R$ 86.994,60); Valor Restos A Pagar Pagos passou de R$ 391.693,38 para R$ 478.687,98 (+R$ 86.994,60).",
+        "resumo": "Valor empregado e pago foram aumentados em R$ X e R$ X, respectivamente.",
+        "motivo": "",
+        "falhou": [
+          "valor"
+        ],
+        "gabarito": "O governo quitou quase R$ 87 mil de contas atrasadas de anos passados para o Urbanismo em Minas Gerais."
+      },
+      {
+        "id": "rastro-mud-20261119-202641300018",
+        "texto": "Emenda 202641300018 (2026), de SAMIA BOMFIM, Emenda Individual - Transferências com Finalidade Definida, função Saúde, local de aplicação MÚLTIPLO. Aparece pela primeira vez no lote de 19/11/2026 (não estava no de 26/10/2026), com Valor Empenhado R$ 700.000,00, Valor Liquidado R$ 0,00, Valor Pago R$ 0,00, Valor Restos A Pagar Inscritos R$ 0,00, Valor Restos A Pagar Cancelados R$ 0,00, Valor Restos A Pagar Pagos R$ 0,00.",
+        "resumo": "A emenda foi registrada com confiança alta, pois é uma mudança de nova introdução no lote de 2026.",
+        "motivo": "",
+        "falhou": [
+          "valor"
+        ],
+        "gabarito": "É uma emenda nova que acaba de entrar no sistema já garantindo a reserva de R$ 700 mil para a Saúde."
+      }
+    ]
+  }
+}
