@@ -196,12 +196,37 @@ execuções da rodada 2.
 - **Confiança declarada não serve de filtro.** O modelo declarou `alta` em 78 dos 80 itens das duas execuções da rodada 2, inclusive nos errados.
 - **O melhor número honesto é 20% (8 de 40), na spec pobre auditada.** A tarefa de escrever para o morador, como foi especificada, não está ao alcance do `qwen3:1.7b` sem revisão humana.
 
+### Segundo modelo (opcional): spec boa com `gemma4:e2b`
+
+Para separar o efeito da spec do efeito do modelo, repeti a execução 2 (spec boa,
+os mesmos 40 itens, código do commit `7ab0d7f`, mesmos parâmetros) com o
+`gemma4:e2b` (ID `b37049369adf`, 4,6 B parâmetros no Ollama, Q4_K_M), no mesmo Mac.
+Resultado em `execucoes/segundo-modelo/` (`medidas.md`). A coluna do qwen3 é a
+`execucoes/rodada2/exec2-boa.jsonl` medida de novo junto, sem rodar outra vez.
+
+| Medida (spec boa) | qwen3:1.7b | gemma4:e2b |
+| :-- | --: | --: |
+| Formato válido | 95,0% | 100,0% |
+| **Acurácia** (4 critérios) | **5,0%** | **2,5%** |
+| Acurácia auditada | 5,0% | 2,5% |
+| Tempo total | 459 s | 418 s |
+| Passos por item | 2,88 | 1,85 |
+| Não resolvidos | 2 | 0 |
+| Critério sentido | 95,0% | 87,5% |
+| Critério valor | 72,5% | 32,5% |
+| Critério sem jargão | 5,0% | 5,0% |
+
+- **Trocar de modelo não salvou a spec boa.** Os dois ficaram com 5% em "sem jargão": com a spec boa, os dois repetem "empenhado" e "liquidado", que a própria referência mandava evitar. Dos 40 itens, 38 falham nos dois modelos.
+- **O gemma4 usou menos as ferramentas.** Em 23 dos 40 itens ele chamou `registrar` logo no primeiro passo, sem consultar o glossário nem buscar frases parecidas, e escreveu frases sem valor ("A emenda teve um avanço, com aumento nos valores empenhados e pagos."). Por isso o critério de valor caiu de 72,5% para 32,5%.
+- **O sentido piorou:** 4 frases de `avanco` comunicam recuo e a emenda nova virou avanço. O sentido continua vindo da regra; a frase é que contradiz.
+- Conclusão: com estes dois modelos pequenos, o ganho não vem do modelo. Vem de tirar texto da referência (com o qwen3, a spec pobre foi melhor que a boa nas duas rodadas) e de conferir a frase depois. Cada execução rodou uma vez; a variação entre rodadas não foi medida.
+
 ### Limites da medição
 
 - O avaliador confere o que dá para conferir por regra. O léxico de sentido e de jargão é limitado: "empregado" passou como não-jargão, e frases com sinônimos não previstos podem ser reprovadas. Ele foi validado nas 40 frases humanas e em exemplos da revisão adversária, não em um conjunto separado.
 - O gabarito é desequilibrado (37 avanço, 2 recuo, 1 nova): a matriz de confusão e o critério de sentido quase não exercitam os outros sentidos.
 - A auditoria de etapa foi criada depois de ver as saídas da rodada 2. Por isso fica em linha separada, e não substitui a acurácia definida antes.
-- Não repeti a execução com um segundo modelo (opcional no tutorial).
+- O segundo modelo foi medido só na spec boa, uma vez, e não no corpus inteiro.
 - O laço foi escrito do zero em Python; não partiu do `agente.sh` da aula.
 
 ## 5. Entrega ao projeto (B5)
@@ -267,3 +292,5 @@ cada linha de saída com o seu tempo, e o vídeo, montado com Remotion, reproduz
 saídas. Nada do terminal foi escrito à mão. As esperas longas foram encurtadas, e o
 enriquecedor, que levou 237 s, aparece 10× mais rápido, com aviso na tela. A narração
 usa a voz sintética Luciana, do macOS, e o vídeo avisa isso na abertura.
+O vídeo foi gravado antes da medição com o segundo modelo, por isso cita o `gemma4:e2b`
+como próximo experimento; o resultado está na seção 4.
