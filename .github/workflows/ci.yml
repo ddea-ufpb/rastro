@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: python
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Instalar workspace (lockfile obrigatório)
+        run: uv sync --all-packages --locked
+
+      - name: Ruff (lint)
+        run: uv run --locked ruff check .
+
+      - name: Ruff (formato)
+        run: uv run --locked ruff format --check .
+
+      - name: Fronteiras entre módulos (import-linter)
+        run: uv run --locked lint-imports
+
+      - name: Testes do app
+        run: uv run --locked pytest app --cov=rastro_app --cov-branch --cov-fail-under=80
+
+      # Cada módulo roda em ambiente exato: só ele e suas dependências declaradas.
+      # Um import de outro módulo (em src/ ou tests/) falha aqui. O status é
+      # acumulado para que a falha de um módulo não esconda a dos outros.
+      - name: Testes de cada módulo, isolados
+        run: |
+          status=0
+          for m in ingestao nucleo consulta saida; do
+            echo "::group::rastro-$m"
+            uv run --locked --exact --package "rastro-$m" \
+              pytest "modulos/$m" --cov="rastro_$m" --cov-branch --cov-fail-under=80 || status=1
+            echo "::endgroup::"
+          done
+          exit $status
+
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: web/package.json
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Instalar dependências (lockfile obrigatório)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (avisos contam como erro)
+        run: pnpm lint
+
+      - name: Tipos
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build

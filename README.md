@@ -3,8 +3,9 @@
 Acompanhamento das emendas parlamentares federais destinadas a um município, com o estado de
 execução traduzido para linguagem que o morador entende.
 
-> **Status:** repositório recém-criado. Nenhuma linha de aplicação escrita. Este README existe para
-> receber os artefatos que alimentam o `/paul:init` de cada módulo.
+> **Status:** Fase 1 (Fundação) em andamento, com o plano 01-01 concluído: scaffold do monorepo e CI
+> que falha quando deve. Ainda não há funcionalidade de domínio. Andamento detalhado em
+> [`.paul/STATE.md`](.paul/STATE.md) e [`.paul/ROADMAP.md`](.paul/ROADMAP.md).
 >
 > **Disciplina:** DINF00071 — Desenvolvimento Dirigido por Especificação com Agentes · CI/UFPB · 2026.2
 
@@ -70,29 +71,87 @@ que ele executou. Por isso:
 **Fontes previstas:** Portal da Transparência / CGU (dados abertos, CSV com dicionário) e Siga Brasil
 (Senado), com atribuição obrigatória da fonte.
 
+## Stack
+
+Decidida no `/paul:plan` a partir das três especificações do Trabalho 1. O registro das decisões e
+dos pontos ainda abertos está em [`.paul/PROJECT.md`](.paul/PROJECT.md).
+
+| Camada | Escolha |
+|---|---|
+| Back-end | Python 3.12, FastAPI, uv workspace (um pacote por módulo) |
+| Banco | PostgreSQL 16, um schema por módulo; os módulos leem o lote publicado só por views, com papel só-leitura |
+| Migrações | Alembic com SQL explícito, por módulo |
+| Front-end | Next.js + TypeScript (strict) + shadcn/ui, pnpm, Node 24 |
+| Implantação | Docker Compose; publica só com o CI verde |
+| CI | GitHub Actions: ruff, import-linter, pytest isolado por módulo (cobertura ≥ 80%), lint/tipos/build do web |
+
+Recorte do MVP: emendas federais da Paraíba, todos os anos. A expansão para Brasil 2025 fica na Fase 6.
+
 ## Estrutura do repositório
 
 ```
 rastro/
-├── README.md              # este arquivo — brief do projeto
-├── CONTRATOS.md           # FI-02: módulos, contratos e duplos
+├── README.md               # este arquivo — brief do projeto
+├── pyproject.toml, uv.lock # raiz do uv workspace (ruff, pytest, import-linter)
 ├── modulos/
-│   ├── ingestao/   .paul/
-│   ├── nucleo/     .paul/
-│   ├── consulta/   .paul/
-│   └── saida/      .paul/
-└── .gitignore             # .claude/ fora do versionamento
+│   ├── ingestao/           # pacote rastro_ingestao (src/, tests/, .paul/)
+│   ├── nucleo/             # pacote rastro_nucleo
+│   ├── consulta/           # pacote rastro_consulta
+│   └── saida/              # pacote rastro_saida
+├── app/                    # rastro_app: compõe as rotas dos módulos num único FastAPI
+├── web/                    # painel Next.js
+├── especificacoes/         # Trabalho 1: telas e arquitetura de cada integrante
+├── .paul/                  # PAUL do sistema: PROJECT, ROADMAP, STATE, planos por fase
+├── .github/workflows/ci.yml
+└── CONTRATOS.md            # FI-02 (rascunho no PR #5)
 ```
+
+Os módulos não importam uns aos outros: o import-linter quebra o CI se isso acontecer, e cada módulo
+roda os testes num ambiente que só contém ele mesmo.
+
+## Como rodar
+
+```bash
+# Python (uv ≥ 0.11, Python 3.12)
+uv sync --all-packages
+uv run ruff check . && uv run ruff format --check . && uv run lint-imports
+uv run --exact --package rastro-ingestao pytest modulos/ingestao   # um módulo, isolado
+uv run pytest app
+uv run uvicorn rastro_app.main:app --reload                         # GET /health
+
+# Web (Node 24, pnpm)
+cd web
+export NEXT_TELEMETRY_DISABLED=1
+pnpm install --frozen-lockfile
+pnpm dev                                                            # http://localhost:3000
+pnpm lint && pnpm typecheck && pnpm build
+```
+
+A partir do plano 01-02, os testes do banco precisam do Docker, que sobe o PostgreSQL 16 via
+testcontainers.
 
 ## Artefatos de entrada do `/paul:init`
 
 O init de cada módulo só roda depois que isto estiver no repositório:
 
 - [ ] **FI-01 de cada integrante**, com as seções 7 e 8 escritas no nível do módulo
-- [ ] **CONTRATOS.md** do grupo: os quatro módulos, os contratos entre pares que se tocam e o duplo de cada contrato
+- [ ] **CONTRATOS.md** do grupo: os quatro módulos, os contratos entre pares que se tocam e o duplo de cada contrato. Há um rascunho no PR #5 (draft).
 - [ ] **Teste de independência** respondido por cada integrante
-- [ ] **Telas do sistema** (Trabalho 1): no mínimo dez, como mock, descrição detalhada ou desenho
-- [ ] **Artefatos de arquitetura** (Trabalho 1): padrão de especificação escolhido, justificativa e os artefatos produzidos
+- [x] **Telas do sistema** (Trabalho 1)
+- [x] **Artefatos de arquitetura** (Trabalho 1)
+
+As telas e a arquitetura do Trabalho 1 estão em [`especificacoes/`](especificacoes/), todas no
+formato arc42 enxuto (C4, ADRs em MADR, requisitos em EARS, OpenAPI 3.1, cenários de qualidade):
+
+| Integrante | Pasta | Telas | Requisitos | ADRs | Situação |
+|---|---|---|---|---|---|
+| Sarah Araújo | [`sarah-araujo/`](especificacoes/sarah-araujo/) | 15 | 82 | 9 | mesclado |
+| João Vitor | [`joao-vitor/`](especificacoes/joao-vitor/) | 19 | 112 | 10 | mesclado |
+| João Rafael | [`joao-rafael/`](especificacoes/joao-rafael/) | 15 | 88 | 10 | mesclado |
+
+O PAUL da raiz (`.paul/`) junta as três especificações. Onde há consenso, ele já registra a decisão.
+Onde divergem (favorecido por CNPJ, canal de alerta, modelo de fases), a questão fica aberta até a
+fase em que precisa ser decidida.
 
 ## Como o trabalho é conduzido
 
@@ -103,6 +162,17 @@ fechamento compara planejado com entregue.
 A **Fase 1 (Fundação)** é a mesma para todos os projetos da turma: scaffold com CI que falha quando
 deve, banco com as restrições de dados no schema, e deploy que só publica com o CI verde. A
 diferença entre os projetos começa na Fase 2.
+
+### Roteiro (v0.1)
+
+| Fase | Entrega | Situação |
+|---|---|---|
+| 1. Fundação | 01-01 scaffold + CI · 01-02 schema PostgreSQL com restrições · 01-03 Compose + deploy só com CI verde + proteção da `main` | 01-01 concluído (PR #7); 01-02 planejado |
+| 2. Ingestão PB | ZIP da CGU, validação, proveniência, publicação atômica | — |
+| 3. Núcleo | Fase de execução derivada dos valores, tradução versionada, mudanças entre lotes | — |
+| 4. Consulta | API `/api/v1` e telas no Next | — |
+| 5. Saída | Assinaturas e alertas com entrega única | — |
+| 6. Brasil 2025 + desempenho | Recorte nacional e metas de desempenho medidas | — |
 
 ## Licença
 
