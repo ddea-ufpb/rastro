@@ -254,3 +254,16 @@ python3 enriquecedor.py --spec boa   --entrada gabarito --saida /tmp/exec2.jsonl
 python3 medir.py /tmp/exec1.jsonl /tmp/exec2.jsonl
 python3 carregar.py dados.jsonl --banco /tmp/rastro.db
 ```
+
+## 8. Vídeo (item D, opcional)
+
+`video/defesa-trabalho2.mp4`: 4 min 06 s, 1920×1080. Mostra as duas etapas rodando
+(D1), a troca dos valores por "R$ X" em `buscar_semelhante` e o efeito nos números (D2),
+e o erro do "empregado", a diferença entre o Mac e o PC e o próximo experimento (D3).
+
+Como foi feito: os comandos rodaram de verdade em 23/11/2026, às 23h05, neste Mac
+(coletor, enriquecedor com 25 itens do gabarito, carga e medições). Um script gravou
+cada linha de saída com o seu tempo, e o vídeo, montado com Remotion, reproduz essas
+saídas. Nada do terminal foi escrito à mão. As esperas longas foram encurtadas, e o
+enriquecedor, que levou 237 s, aparece 10× mais rápido, com aviso na tela. A narração
+usa a voz sintética Luciana, do macOS, e o vídeo avisa isso na abertura.
