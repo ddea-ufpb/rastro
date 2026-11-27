@@ -19,7 +19,7 @@ Milestone: v0.1 Trabalho 2
 Phase: 2 of 4 (Gabarito de 40 itens)
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-27 — Phase 1 complete (PR #8), transitioned to Phase 2
+Last activity: 2026-11-27 — Phase 1 complete (PR #9), transitioned to Phase 2
 
 Progress:
 - Milestone: [██░░░░░░░░] 25%
@@ -49,11 +49,11 @@ PLAN ──▶ APPLY ──▶ UNIFY
 
 ### Blockers/Concerns
 - Phase 2: gabarito venceu em 26/11; rotulagem é humana (João) e precisa de commit antes da 1ª execução do modelo.
-- `CONTRATOS.md` é rascunho (PR #5): `*_centavos` ainda [decidir]; pedido feito no PR #8.
+- `CONTRATOS.md` é rascunho (PR #5): `*_centavos` ainda [decidir]; pedido feito no PR #9.
 
 ### Git State
 Last commit: ver `git log` da branch (commit da fase 1)
-Branch: trabalho2/joao-rafael-coleta-favorecidos (PR #8)
+Branch: trabalho2/joao-rafael (PR #9)
 Feature branches merged: none (merge é do grupo)
 
 ## Session Continuity

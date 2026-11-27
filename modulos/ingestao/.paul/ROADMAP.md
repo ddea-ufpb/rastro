@@ -20,7 +20,7 @@ Prazo final: 2026-12-01
 
 | Phase | Name | Plans | Status | Completed |
 |-------|------|-------|--------|-----------|
-| 1 | Etapa 1 no contrato e enviada | 1/1 | ✅ Complete (PR #8) | 2026-11-27 |
+| 1 | Etapa 1 no contrato e enviada | 1/1 | ✅ Complete (PR #9) | 2026-11-27 |
 | 2 | Gabarito de 40 itens | TBD | Not started | - |
 | 3 | Enriquecedor (parser + agente) | TBD | Not started | - |
 | 4 | Medição e entrega | TBD | Not started | - |

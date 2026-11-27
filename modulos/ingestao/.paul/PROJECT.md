@@ -20,7 +20,7 @@ Todo pagamento de emenda ligada à PB chega ao banco com a entidade certa (por C
 |-----------|-------|
 | Type | Application (pipeline de dados + CLI) |
 | Version | 0.1.0 |
-| Status | Prototype — Etapa 1 do T2 enviada (PR #8); Etapa 2 a fazer |
+| Status | Prototype — Etapa 1 do T2 enviada (PR #9); Etapa 2 a fazer |
 | Last Updated | 2026-11-27 |
 
 ## Requirements
@@ -33,7 +33,7 @@ Todo pagamento de emenda ligada à PB chega ao banco com a entidade certa (por C
 - Entregar `dados.jsonl`, `ESQUEMA.md` e `carregar.py` que um colega consiga usar sem perguntar.
 
 ### Validated (Shipped)
-- ✓ Corpus da Etapa 1 no vocabulário do grupo, em centavos, reprodutível de checkout limpo — Phase 1 (PR #8)
+- ✓ Corpus da Etapa 1 no vocabulário do grupo, em centavos, reprodutível de checkout limpo — Phase 1 (PR #9)
 
 ### Active (In Progress)
 - [ ] Gabarito de 40 itens rotulado à mão (Phase 2).
@@ -80,7 +80,7 @@ Todo pagamento de emenda ligada à PB chega ao banco com a entidade certa (por C
 | Decision | Rationale | Date | Status |
 |----------|-----------|------|--------|
 | Nomes do CONTRATOS.md (`RegistroFavorecido`, `codigo_emenda`, `*_centavos`); demais da spec do T1 | Critério C2 do T2 | 2026-11-24 | Active |
-| Alinhar a E1 antes de enviar | Escolha do autor, mesmo com o prazo de 24/11 | 2026-11-24 | Done (PR #8) |
+| Alinhar a E1 antes de enviar | Escolha do autor, mesmo com o prazo de 24/11 | 2026-11-24 | Done (PR #9) |
 | Dinheiro em centavos inteiros na fronteira | REQ-24 do T1; `*_centavos` ainda [decidir] no PR #5 | 2026-11-27 | Active |
 | Categorias de natureza: prefeitura, autarquia, hospital, osc, consorcio, empresa, orgao_estadual, outro | 1 518 fornecedores e órgãos estaduais não cabem nas 5 do enunciado | 2026-11-27 | Active |
 | Empresário individual descartado como pessoa | 17 de 190 com CPF no nome (ADR-0004 do T1) | 2026-11-22 | Active |

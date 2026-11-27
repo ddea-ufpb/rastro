@@ -138,3 +138,5 @@ checkout limpo reproduz o versionado
 *Built with PAUL Framework v1.4*
 *Phase: 01-etapa1-contrato, Plan: 01*
 *Completed: 2026-11-27*
+
+**Nota de 2026-11-27 (depois do UNIFY):** a branch foi renomeada para `trabalho2/joao-rafael`, no padrão das outras do Trabalho 2. O rename pela API fechou o PR #8; os mesmos commits estão no PR #9 (https://github.com/ddea-ufpb/rastro/pull/9).
