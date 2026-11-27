@@ -15,20 +15,18 @@ status = "in_progress"
 phases = 4
 
 [phase]
-number = 1
-name = "Etapa 1 no contrato e enviada"
-status = "planning"
+number = 2
+name = "Gabarito de 40 itens"
+status = "not_started"
 plans_completed = 0
 
 [loop]
-position = "PLAN"
-plan = "01-01"
-plan_path = "phases/01-etapa1-contrato/01-01-PLAN.md"
+position = "IDLE"
 
 [satellite]
 groom = true
 
 [stats]
-total_plans = 0
+total_plans = 1
 total_phases = 4
-last_activity = "2026-11-27T12:00:00-03:00"
+last_activity = "2026-11-27T13:15:00-03:00"

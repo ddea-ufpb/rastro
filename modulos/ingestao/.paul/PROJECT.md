@@ -20,8 +20,8 @@ Todo pagamento de emenda ligada à PB chega ao banco com a entidade certa (por C
 |-----------|-------|
 | Type | Application (pipeline de dados + CLI) |
 | Version | 0.1.0 |
-| Status | Prototype — Etapa 1 do T2 pronta, não enviada |
-| Last Updated | 2026-11-24 |
+| Status | Prototype — Etapa 1 do T2 enviada (PR #8); Etapa 2 a fazer |
+| Last Updated | 2026-11-27 |
 
 ## Requirements
 
@@ -33,14 +33,12 @@ Todo pagamento de emenda ligada à PB chega ao banco com a entidade certa (por C
 - Entregar `dados.jsonl`, `ESQUEMA.md` e `carregar.py` que um colega consiga usar sem perguntar.
 
 ### Validated (Shipped)
-None yet.
+- ✓ Corpus da Etapa 1 no vocabulário do grupo, em centavos, reprodutível de checkout limpo — Phase 1 (PR #8)
 
 ### Active (In Progress)
-- [ ] Etapa 1 do T2 — corpus pronto (commit `24017d4`), falta alinhar nomes ao contrato e enviar.
+- [ ] Gabarito de 40 itens rotulado à mão (Phase 2).
 
 ### Planned (Next)
-- [ ] Alinhar o corpus da Etapa 1 ao CONTRATOS.md e à spec do T1.
-- [ ] Gabarito de 40 itens rotulado à mão, em commit anterior à 1ª execução do modelo (até 26/11).
 - [ ] Enriquecedor com laço próprio, ≥ 2 ferramentas de domínio + `registrar`, duas medições (spec pobre e boa).
 - [ ] Entrega: `dados.jsonl`, `ESQUEMA.md`, `carregar.py`, relatório (até 01/12).
 
@@ -82,7 +80,9 @@ None yet.
 | Decision | Rationale | Date | Status |
 |----------|-----------|------|--------|
 | Nomes do CONTRATOS.md (`RegistroFavorecido`, `codigo_emenda`, `*_centavos`); demais da spec do T1 | Critério C2 do T2 | 2026-11-24 | Active |
-| Alinhar a E1 antes de enviar | Escolha do autor, mesmo com o prazo de 24/11 | 2026-11-24 | Active |
+| Alinhar a E1 antes de enviar | Escolha do autor, mesmo com o prazo de 24/11 | 2026-11-24 | Done (PR #8) |
+| Dinheiro em centavos inteiros na fronteira | REQ-24 do T1; `*_centavos` ainda [decidir] no PR #5 | 2026-11-27 | Active |
+| Categorias de natureza: prefeitura, autarquia, hospital, osc, consorcio, empresa, orgao_estadual, outro | 1 518 fornecedores e órgãos estaduais não cabem nas 5 do enunciado | 2026-11-27 | Active |
 | Empresário individual descartado como pessoa | 17 de 190 com CPF no nome (ADR-0004 do T1) | 2026-11-22 | Active |
 | Plan → Audit → Apply → Unify | Fluxo do README do repo | 2026-11-24 | Active |
 
@@ -92,7 +92,7 @@ None yet.
 |--------|--------|---------|--------|
 | Itens no corpus | ≥ 150 | 2 353 | On track |
 | Reexecução do coletor gera arquivo idêntico | sim | sim (sha256) | Achieved |
-| Campos com nomes do CONTRATOS.md / T1 | 100% | 0% | Not started |
+| Campos com nomes do CONTRATOS.md / T1 | 100% | 100% | Achieved |
 | Gabarito em commit antes da 1ª execução | sim | - | Not started |
 | Medições com as 5 medidas | 2 | 0 | Not started |
 
@@ -101,7 +101,7 @@ None yet.
 | Layer | Technology | Notes |
 |-------|------------|-------|
 | Linguagem | Python 3.12 | `csv`, `zipfile`, `hashlib`, `json` da stdlib |
-| Modelo local | Ollama `qwen3:1.7b` | tag fixa, `temperature: 0` |
+| Modelo local | Ollama 0.40.18 (Windows) `qwen3:1.7b` | tag fixa, `temperature: 0`; i5-1135G7, 7,8 GB, sem GPU dedicada |
 | Testes | `unittest` / pytest | regra com a linha real que a motivou |
 | Destino | PostgreSQL (spec do T1) / SQLite no `carregar.py` | a decidir no plano da Etapa 2 |
 
@@ -115,3 +115,4 @@ None yet.
 
 ---
 *Created: 2026-11-24*
+*Last updated: 2026-11-27 after Phase 1*
