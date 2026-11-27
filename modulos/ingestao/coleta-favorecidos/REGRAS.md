@@ -14,11 +14,29 @@ Coleta de 2026-11-22. "Item que motivou" aponta a linha do arquivo original (`Em
 | R-SEMINFO | `Sem informação` / `S/I` → `null` (código da emenda, natureza, município) | `bruto/favorecidos-pb-2026-11-22.csv:2108` (código da emenda) · `:328` (município) | 1 226 código da emenda · 65 município · 0 natureza |
 | R-UF | UF que não é sigla de 2 letras → `null` | `bruto/favorecidos-pb-2026-11-22.csv:328` (UF `-1`) | 65 |
 | R-NEG | Valor negativo é mantido (estorno), não descartado | `bruto/favorecidos-pb-2026-11-22.csv:25` (`-34705,63`, Fundação FUNETEC) | 14 |
-| R-VALOR | Valor no formato `^-?\d+,\d{2}$` (REQ-48) → vira string com ponto (`600000.00`), sem float; fora do formato → descarte `valor_fora_do_formato` | Formato observado em todas as linhas | 19 647 convertidas · 0 descartadas |
+| R-VALOR | Valor no formato `^-?\d+,\d{2}$` (REQ-48) → centavos inteiros (`600000,00` → `60000000`; REQ-24 do T1), sem float; fora do formato → descarte `valor_fora_do_formato` | Formato observado em todas as linhas | 19 647 convertidas · 0 descartadas |
 | R-ANOMES | `Ano/Mês` precisa ser `AAAAMM` com mês 01–12; mantido como `AAAAMM` (nome e formato do contrato `pagamento_favorecido.ano_mes`) | Formato observado em todas as linhas | 0 descartadas |
 | R-TEXTO | Nome com espaços colapsados e sem quebra de linha | Guarda do esqueleto do tutorial | 0 |
 | R-COLUNAS | Linha com número de colunas diferente de 13 → descarte `numero_de_colunas_inesperado` | Guarda (REQ-48) | 0 |
-| R-CHAVE | Uma entidade por CNPJ: chave = sha256 do CNPJ; os pagamentos da entidade ficam em `campos.pagamentos` | Na coleta, cada CNPJ veio com um nome só; o coletor falha (assert) se aparecer um segundo nome | 19 647 pagamentos → 2 353 entidades |
+| R-NOMES | Campos com o vocabulário do `CONTRATOS.md` (`Favorecido`, `RegistroFavorecido`, `codigo_emenda`, `*_centavos`) e, onde ele não fixa nome, do `modelo-de-dados.md` do T1 (`cnpj`, `cnpj_raiz`, `razao_social`, `natureza`, `uf`, `ano_mes`). Tabela abaixo | Critério C2 do Trabalho 2 | 2 353 entidades · 19 647 registros |
+| R-CHAVE | Uma entidade por CNPJ: chave = sha256 do CNPJ; os pagamentos da entidade ficam em `campos.registros_favorecido` | Na coleta, cada CNPJ veio com um nome só; o coletor falha (assert) se aparecer um segundo nome | 19 647 pagamentos → 2 353 entidades |
+
+## Nomes dos campos (mudança de 2026-11-27)
+
+A versão de 22/11 usava os nomes do modelo da Sarah. Os valores são os mesmos: só mudaram o nome e a unidade do dinheiro, conferido item a item contra o commit `24017d4`. `*_centavos` ainda está marcado **[decidir]** no `CONTRATOS.md` (PR #5).
+
+| Antes (22/11) | Agora |
+|---|---|
+| `codigo_favorecido` | `cnpj` |
+| — | `cnpj_raiz` (8 primeiros dígitos) |
+| `favorecido_nome` | `razao_social` |
+| `natureza_juridica` | `natureza` |
+| `uf_favorecido` | `uf` |
+| `municipio_favorecido_nome` | `municipio_nome` |
+| `pagamentos[]` | `registros_favorecido[]` |
+| `pagamentos[].valor_recebido` (string em reais, `"2120.00"`) | `registros_favorecido[].valor_centavos` (inteiro, `212000`) |
+| `total_pagamentos` | `quantidade_registros` |
+| `valor_recebido_total` (string em reais) | `valor_total_centavos` (inteiro) |
 
 ## Observações que não viraram regra
 

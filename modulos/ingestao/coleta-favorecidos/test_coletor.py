@@ -19,15 +19,20 @@ def motivo(r):
 
 def test_linha_valida():
     n = normalizar(reg())
-    assert n['favorecido_nome'] == 'FUNDO MUNICIPAL DE SAUDE - FMSCI'  # R-TEXTO colapsa espaços
-    assert n['pagamento']['valor_recebido'] == '600000.00'
-    assert n['pagamento']['ano_mes'] == '202510'
-    assert normalizar(reg(**{'UF Favorecido': '-1'}))['uf_favorecido'] is None  # R-UF
+    assert n['razao_social'] == 'FUNDO MUNICIPAL DE SAUDE - FMSCI'  # R-TEXTO colapsa espaços
+    assert n['registro']['valor_centavos'] == 60000000
+    assert n['registro']['ano_mes'] == '202510'
+    assert normalizar(reg(**{'UF Favorecido': '-1'}))['uf'] is None  # R-UF
+
+
+def test_valor_negativo_em_centavos():  # R-NEG + R-VALOR: estorno da FUNETEC, bruto:25
+    v = normalizar(reg(**{'Valor Recebido': '-34705,63'}))['registro']['valor_centavos']
+    assert v == -3470563 and type(v) is int
 
 
 def test_sem_informacao_vira_nulo():
     n = normalizar(reg(**{'Código da Emenda': 'Sem informação', 'Natureza Jurídica': 'Sem informação'}))
-    assert n['pagamento']['codigo_emenda'] is None and n['natureza_juridica'] is None
+    assert n['registro']['codigo_emenda'] is None and n['natureza'] is None
 
 
 def test_descartes():

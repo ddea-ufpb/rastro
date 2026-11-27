@@ -8,7 +8,8 @@ Uso:
 
 Saídas (nesta pasta): corpus.jsonl, descartes.jsonl.
 Um item do corpus é uma entidade favorecida (um CNPJ), com os pagamentos que recebeu.
-Nomes de campo seguem especificacoes/sarah-araujo/arquitetura/contratos/modelo-dados.md (pagamento_favorecido).
+Nomes de campo seguem o CONTRATOS.md do grupo (Favorecido, RegistroFavorecido, codigo_emenda, *_centavos) e,
+onde ele não fixa nome, especificacoes/joao-rafael/arquitetura/contratos/modelo-de-dados.md (Favorecido, Pagamento).
 """
 import csv
 import datetime
@@ -182,15 +183,15 @@ def normalizar(reg: dict) -> dict:
     if not re.fullmatch(r'20\d{2}(0[1-9]|1[0-2])', ano_mes):  # R-ANOMES
         raise Descarte('ano_mes_fora_do_formato')
     return {
-        'codigo_favorecido': codigo,
-        'favorecido_nome': nome,
-        'natureza_juridica': nulo_se_sem_info(reg['Natureza Jurídica']),
-        'uf_favorecido': uf if re.fullmatch(r'[A-Z]{2}', uf := texto(reg['UF Favorecido'])) else None,  # R-UF
-        'municipio_favorecido_nome': nulo_se_sem_info(reg['Município Favorecido']),
-        'pagamento': {
+        'cnpj': codigo,
+        'razao_social': nome,
+        'natureza': nulo_se_sem_info(reg['Natureza Jurídica']),
+        'uf': uf if re.fullmatch(r'[A-Z]{2}', uf := texto(reg['UF Favorecido'])) else None,  # R-UF
+        'municipio_nome': nulo_se_sem_info(reg['Município Favorecido']),
+        'registro': {
             'codigo_emenda': nulo_se_sem_info(reg['Código da Emenda']),
             'ano_mes': ano_mes,
-            'valor_recebido': valor.replace(',', '.'),  # string: sem float em dinheiro
+            'valor_centavos': int(valor.replace(',', '')),  # R-VALOR: centavos inteiros, sem float (REQ-24 do T1)
             'fonte': reg['_fonte'],
         },
     }
@@ -198,32 +199,33 @@ def normalizar(reg: dict) -> dict:
 
 # 4. DEDUPLICAR — chave estável: o CNPJ ---------------------------------------------------------------
 
-def chave(codigo_favorecido: str) -> str:
-    return hashlib.sha256(codigo_favorecido.encode()).hexdigest()[:16]
+def chave(cnpj: str) -> str:
+    return hashlib.sha256(cnpj.encode()).hexdigest()[:16]
 
 
 def agrupar(normalizados, coletado_em):
     itens = {}
     for r in normalizados:
-        k = chave(r['codigo_favorecido'])
+        k = chave(r['cnpj'])
         if k not in itens:
             itens[k] = {
-                'id': f'rastro-fav-{r["codigo_favorecido"]}',
-                'texto': r['favorecido_nome'],
-                'campos': {c: r[c] for c in ('codigo_favorecido', 'favorecido_nome', 'natureza_juridica',
-                                             'uf_favorecido', 'municipio_favorecido_nome')} | {'pagamentos': []},
-                'fonte': r['pagamento']['fonte'],
+                'id': f'rastro-fav-{r["cnpj"]}',
+                'texto': r['razao_social'],
+                'campos': {'cnpj': r['cnpj'], 'cnpj_raiz': r['cnpj'][:8]}
+                          | {c: r[c] for c in ('razao_social', 'natureza', 'uf', 'municipio_nome')}
+                          | {'registros_favorecido': []},
+                'fonte': r['registro']['fonte'],
                 'coletado_em': coletado_em,
                 'chave': k,
             }
         it = itens[k]['campos']
         # Na T1 cada CNPJ tinha um nome só; se um dia vier outro, falha em vez de esconder.
-        assert it['favorecido_nome'] == r['favorecido_nome'], (r['codigo_favorecido'], r['favorecido_nome'])
-        it['pagamentos'].append(r['pagamento'])
+        assert it['razao_social'] == r['razao_social'], (r['cnpj'], r['razao_social'])
+        it['registros_favorecido'].append(r['registro'])
     for it in itens.values():
         c = it['campos']
-        c['total_pagamentos'] = len(c['pagamentos'])
-        c['valor_recebido_total'] = f'{sum(int(p["valor_recebido"].replace(".", "")) for p in c["pagamentos"]) / 100:.2f}'
+        c['quantidade_registros'] = len(c['registros_favorecido'])
+        c['valor_total_centavos'] = sum(p['valor_centavos'] for p in c['registros_favorecido'])
     return itens
 
 

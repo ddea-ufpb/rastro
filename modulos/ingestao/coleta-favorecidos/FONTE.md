@@ -31,6 +31,8 @@ python test_coletor.py       # testes das regras
 
 Rodar duas vezes gera arquivos idênticos (conferido por sha256).
 
+Os campos do `corpus.jsonl` usam os nomes do `CONTRATOS.md` e do `modelo-de-dados.md` do T1; valores em centavos inteiros (ver REGRAS.md, R-NOMES).
+
 ## Diferenças em relação ao contrato da Sarah (`especificacoes/sarah-araujo/arquitetura/contratos/fonte-portal.md`, 27/10/2026)
 
 - O zip agora tem **6** CSVs (entraram `_Parcerias`, `_PlanodeTrabalhoParcerias` e `_PlanodeTrabalhoTransferenciasEspeciais`). Os três do contrato continuam lá, com o mesmo cabeçalho no de favorecidos.
